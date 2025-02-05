@@ -227,6 +227,19 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     return (0);
 
   t = pool_elt_at_index (gm->tunnels, ti);
+  
+  if (t->key_present) {
+    gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
+    /* Add key after GRE header */
+    u32 *key = (u32 *)(gre + 1);
+    *key = clib_host_to_net_u32(t->gre_key);
+    
+    /* Adjust rewrite size */
+    if (!is_ipv6)
+      vec_validate(rewrite, sizeof(*h4) + sizeof(u32) - 1);
+    else
+      vec_validate(rewrite, sizeof(*h6) + sizeof(u32) - 1);
+  }
 
   is_ipv6 = t->tunnel_dst.fp_proto == FIB_PROTOCOL_IP6 ? 1 : 0;
 
@@ -701,11 +714,14 @@ format_gre_tunnel_name (u8 *s, va_list *args)
   gre_main_t *gm = &gre_main;
   gre_tunnel_t *t;
 
-  if (dev_instance >= vec_len (gm->tunnels))
-    return format (s, "<improperly-referenced>");
+ //if (dev_instance >= vec_len (gm->tunnels))
+ //   return format (s, "<improperly-referenced>");
 
   t = pool_elt_at_index (gm->tunnels, dev_instance);
-  return format (s, "gre%d", t->user_instance);
+  s = format (s, "gre%d", t->user_instance);
+  if (t->key_present)
+    s = format (s, " key %u", t->gre_key);
+  return s;
 }
 
 static u8 *

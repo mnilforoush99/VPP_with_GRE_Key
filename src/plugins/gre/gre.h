@@ -94,15 +94,16 @@ typedef struct gre_tunnel_key_common_t_
     struct
     {
       u32 fib_index;
+      u32 gre_key;
       u16 session_id;
       gre_tunnel_type_t type;
       tunnel_mode_t mode;
     };
-    u64 as_u64;
+    u64 as_u64[2];
   };
 } gre_tunnel_key_common_t;
 
-STATIC_ASSERT_SIZEOF (gre_tunnel_key_common_t, sizeof (u64));
+STATIC_ASSERT_SIZEOF (gre_tunnel_key_common_t, 2 * sizeof (u64));
 
 /**
  * @brief Key for a IPv4 GRE Tunnel
@@ -205,6 +206,11 @@ typedef struct
   u32 sw_if_index;
   gre_tunnel_type_t type;
   tunnel_mode_t mode;
+  
+  /* Add GRE key */
+  u32 gre_key;
+  u8 key_present;    /* Flag to indicate if key is used */
+  
   tunnel_encap_decap_flags_t flags;
 
   /**
@@ -367,6 +373,8 @@ typedef struct
   ip46_address_t src, dst;
   u32 outer_table_id;
   u16 session_id;
+  u32 gre_key;
+  u8 key_present;       /* Flag to indicate if key should be used */
   tunnel_encap_decap_flags_t flags;
 } vnet_gre_tunnel_add_del_args_t;
 
@@ -375,10 +383,13 @@ extern int vnet_gre_tunnel_add_del (vnet_gre_tunnel_add_del_args_t * a,
 
 static inline void
 gre_mk_key4 (ip4_address_t src,
-	     ip4_address_t dst,
-	     u32 fib_index,
-	     gre_tunnel_type_t ttype,
-	     tunnel_mode_t tmode, u16 session_id, gre_tunnel_key4_t * key)
+       ip4_address_t dst,
+       u32 fib_index,
+       gre_tunnel_type_t ttype,
+       tunnel_mode_t tmode, 
+       u16 session_id,
+       u32 gre_key,
+       gre_tunnel_key4_t * key)
 {
   key->gtk_src = src;
   key->gtk_dst = dst;
@@ -386,8 +397,8 @@ gre_mk_key4 (ip4_address_t src,
   key->gtk_common.mode = tmode;
   key->gtk_common.fib_index = fib_index;
   key->gtk_common.session_id = session_id;
+  key->gtk_common.gre_key = gre_key;
 }
-
 static inline int
 gre_match_key4 (const gre_tunnel_key4_t * key1,
 		const gre_tunnel_key4_t * key2)
