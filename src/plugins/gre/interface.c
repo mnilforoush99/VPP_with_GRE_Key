@@ -158,8 +158,8 @@ gre_tunnel_stack (adj_index_t ai)
       adj_midchain_delegate_stack (ai, gt->outer_fib_index, &gt->tunnel_dst);
       if (gt->key_present) //modified by Masih
         {
-            gre_header_t *h = (gre_header_t *)adj->rewrite_data;
-            h->key = clib_host_to_net_u32(gt->gre_key);
+           gre_header_with_key_t *h = (gre_header_with_key_t *)adj->rewrite_data;
+           h->key = clib_host_to_net_u32(gt->gre_key);
         }
     }
 }

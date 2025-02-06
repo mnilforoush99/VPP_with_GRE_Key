@@ -100,10 +100,11 @@ typedef struct gre_tunnel_key_common_t_
       gre_tunnel_type_t type;
       tunnel_mode_t mode; */
       u32 fib_index;
+      u32 gre_key;
       u16 session_id;
       u8 type;    // gre_tunnel_type_t is packed
       u8 mode;    // tunnel_mode_t
-      u32 gre_key;
+      u8 pad[4];  // Add padding to ensure proper alignment
     };
     u64 as_u64[2];
   };
@@ -415,10 +416,13 @@ gre_match_key4 (const gre_tunnel_key4_t * key1,
 
 static inline void
 gre_mk_key6 (const ip6_address_t * src,
-	     const ip6_address_t * dst,
-	     u32 fib_index,
-	     gre_tunnel_type_t ttype,
-	     tunnel_mode_t tmode, u16 session_id, gre_tunnel_key6_t * key)
+             const ip6_address_t * dst,
+             u32 fib_index,
+             gre_tunnel_type_t ttype,
+             tunnel_mode_t tmode, 
+             u16 session_id, 
+             u32 gre_key,
+             gre_tunnel_key6_t * key)
 {
   key->gtk_src = *src;
   key->gtk_dst = *dst;
@@ -426,6 +430,7 @@ gre_mk_key6 (const ip6_address_t * src,
   key->gtk_common.mode = tmode;
   key->gtk_common.fib_index = fib_index;
   key->gtk_common.session_id = session_id;
+  key->gtk_common.gre_key = gre_key;
 }
 
 static inline int
