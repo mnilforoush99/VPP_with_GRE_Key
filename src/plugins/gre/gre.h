@@ -93,11 +93,17 @@ typedef struct gre_tunnel_key_common_t_
   {
     struct
     {
+      /*
       u32 fib_index;
       u32 gre_key;
       u16 session_id;
       gre_tunnel_type_t type;
-      tunnel_mode_t mode;
+      tunnel_mode_t mode; */
+      u32 fib_index;
+      u16 session_id;
+      u8 type;    // gre_tunnel_type_t is packed
+      u8 mode;    // tunnel_mode_t
+      u32 gre_key;
     };
     u64 as_u64[2];
   };
