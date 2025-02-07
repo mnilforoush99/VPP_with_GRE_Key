@@ -87,53 +87,66 @@ typedef struct
 /**
  * Elements of the GRE key that are common for v6 and v6 addresses
  */
-typedef struct gre_tunnel_key_common_t_
+/*typedef struct gre_tunnel_key_common_t_
 {
   union
   {
     struct
     {
-      /*
       u32 fib_index;
-      u32 gre_key;
       u16 session_id;
       gre_tunnel_type_t type;
-      tunnel_mode_t mode; */
-      u32 fib_index;
-      u32 gre_key;
-      u16 session_id;
-      u8 type;    // gre_tunnel_type_t is packed
-      u8 mode;    // tunnel_mode_t
-      u8 pad[4];  // Add padding to ensure proper alignment
+      tunnel_mode_t mode;
+  
     };
     u64 as_u64[2];
   };
-} gre_tunnel_key_common_t;
+} gre_tunnel_key_common_t;*/
+typedef struct gre_tunnel_key_common_t_ 
+{
+  u32 fib_index;
+  u32 gre_key;
+  u16 session_id;
+  u8 type;    // gre_tunnel_type_t
+  u8 mode;    // tunnel_mode_t
+} __attribute__ ((packed)) gre_tunnel_key_common_t;
 
 STATIC_ASSERT_SIZEOF (gre_tunnel_key_common_t, 2 * sizeof (u64));
 
 /**
  * @brief Key for a IPv4 GRE Tunnel
  */
-typedef struct gre_tunnel_key4_t_
+//typedef struct gre_tunnel_key4_t_
+//{
+//  /**
+//   * Source and destination IP addresses
+//   */
+//  union
+//  {
+//    struct
+//    {
+//      ip4_address_t gtk_src;
+//      ip4_address_t gtk_dst;
+//    };
+//    u64 gtk_as_u64;
+//  };
+//
+//  /** address independent attributes */
+//  gre_tunnel_key_common_t gtk_common;
+//} __attribute__ ((packed)) gre_tunnel_key4_t;
+typedef struct gre_tunnel_key4_t_ 
 {
-  /**
-   * Source and destination IP addresses
-   */
-  union
+  union 
   {
-    struct
+    struct 
     {
       ip4_address_t gtk_src;
       ip4_address_t gtk_dst;
     };
     u64 gtk_as_u64;
   };
-
-  /** address independent attributes */
   gre_tunnel_key_common_t gtk_common;
-} __attribute__ ((packed)) gre_tunnel_key4_t;
-
+} __attribute__ ((aligned(8))) gre_tunnel_key4_t;
 STATIC_ASSERT_SIZEOF (gre_tunnel_key4_t, 2 * sizeof (u64));
 
 /**

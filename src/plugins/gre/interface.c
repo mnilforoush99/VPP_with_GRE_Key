@@ -79,13 +79,13 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
   if (!a->is_ipv6)
     {
       gre_mk_key4 (a->src.ip4, a->dst.ip4, outer_fib_index, a->type, a->mode,
-		   a->session_id, &key->gtk_v4);
+		   a->session_id, a->gre_key, &key->gtk_v4);
       p = hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
     }
   else
     {
       gre_mk_key6 (&a->src.ip6, &a->dst.ip6, outer_fib_index, a->type, a->mode,
-		   a->session_id, &key->gtk_v6);
+		   a->session_id, a->gre_key, &key->gtk_v6);
       p = hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6);
     }
 
@@ -255,11 +255,11 @@ gre_teib_mk_key (const gre_tunnel_t *t, const teib_entry_t *ne,
   if (FIB_PROTOCOL_IP4 == nh->fp_proto)
     gre_mk_key4 (t->tunnel_src.ip4, nh->fp_addr.ip4,
 		 teib_entry_get_fib_index (ne), t->type, TUNNEL_MODE_P2P, 0,
-		 &key->gtk_v4);
+		 t->gre_key, &key->gtk_v4);
   else
     gre_mk_key6 (&t->tunnel_src.ip6, &nh->fp_addr.ip6,
 		 teib_entry_get_fib_index (ne), t->type, TUNNEL_MODE_P2P, 0,
-		 &key->gtk_v6);
+		 t->gre_key, &key->gtk_v6);
 }
 
 /**
