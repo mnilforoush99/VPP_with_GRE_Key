@@ -150,7 +150,7 @@ typedef struct gre_tunnel_key4_t_
       ip4_address_t gtk_src;
       ip4_address_t gtk_dst;
     };
-    u64 as_u64;  // Must fit in exactly 1 * sizeof(u64)
+    u64 gtk_as_u64;  // Must fit in exactly 1 * sizeof(u64)
   };
   /** address independent attributes */
   gre_tunnel_key_common_t gtk_common;
