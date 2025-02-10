@@ -227,19 +227,6 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     return (0);
 
   t = pool_elt_at_index (gm->tunnels, ti);
-  
-  if (t->key_present) {
-    gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
-    /* Add key after GRE header */
-    u32 *key = (u32 *)(gre + 1);
-    *key = clib_host_to_net_u32(t->gre_key);
-    
-    /* Adjust rewrite size */
-    if (!is_ipv6)
-      vec_validate(rewrite, sizeof(*h4) + sizeof(u32) - 1);
-    else
-      vec_validate(rewrite, sizeof(*h6) + sizeof(u32) - 1);
-  }
 
   is_ipv6 = t->tunnel_dst.fp_proto == FIB_PROTOCOL_IP6 ? 1 : 0;
 
@@ -271,6 +258,26 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h6->ip6.dst_address.as_u64[0] = dst->ip6.as_u64[0];
       h6->ip6.dst_address.as_u64[1] = dst->ip6.as_u64[1];
     }
+    
+  if (t->key_present) 
+  {
+    if (t->gre_key == 0)  // Invalid key check
+    {
+      clib_warning("Invalid GRE key: 0 for tunnel %d", ti);
+      return 0;  // Drop the rewrite attempt
+    }
+
+    gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
+    
+    /* Adjust rewrite size */
+    if (!is_ipv6)
+      vec_validate(rewrite, sizeof(*h4) + sizeof(u32) - 1);
+    else
+      vec_validate(rewrite, sizeof(*h6) + sizeof(u32) - 1);
+    /* Add key after GRE header */
+    u32 *key = (u32 *)(gre + 1);
+    *key = clib_host_to_net_u32(t->gre_key);
+  }
 
   if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
     {
