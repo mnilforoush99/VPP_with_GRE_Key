@@ -157,7 +157,6 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
       u8 matched[2];
       u32 tun_sw_if_index[2];
    
-
       if (PREDICT_TRUE (n_left_from >= 6))
 	{
 	  vlib_prefetch_buffer_data (b[2], LOAD);

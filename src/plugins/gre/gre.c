@@ -258,7 +258,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h6->ip6.dst_address.as_u64[0] = dst->ip6.as_u64[0];
       h6->ip6.dst_address.as_u64[1] = dst->ip6.as_u64[1];
     }
-    
+
   if (t->key_present) 
   {
     if (t->gre_key == 0)  // Invalid key check
@@ -721,13 +721,13 @@ format_gre_tunnel_name (u8 *s, va_list *args)
   gre_main_t *gm = &gre_main;
   gre_tunnel_t *t;
 
- //if (dev_instance >= vec_len (gm->tunnels))
- //   return format (s, "<improperly-referenced>");
+  if (dev_instance >= vec_len (gm->tunnels))
+    return format (s, "<improperly-referenced>");
 
   t = pool_elt_at_index (gm->tunnels, dev_instance);
   s = format (s, "gre%d", t->user_instance);
-  if (t->key_present)
-    s = format (s, " key %u", t->gre_key);
+  //if (t->key_present)
+    //s = format (s, " key %u", t->gre_key);
   return s;
 }
 
