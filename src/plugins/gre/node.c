@@ -101,7 +101,16 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
 		u32 *cached_tun_sw_if_index, int is_ipv6)
 {
   //debug
-  clib_warning("Key details - gtk_v4: %U", format_gre_key4, &key->gtk_v4);
+  if (!is_ipv6) {
+    gre_tunnel_key4_t *k4 = &key->gtk_v4;
+    clib_warning("Key details - src: %U dst: %U fib: %d type: %d mode: %d",
+                 format_ip4_address, &k4->src,
+                 format_ip4_address, &k4->dst,
+                 k4->fib_index,
+                 k4->tunnel_type,
+                 k4->mode);
+  }
+//end debug print
   const uword *p;
   p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
 		      hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
