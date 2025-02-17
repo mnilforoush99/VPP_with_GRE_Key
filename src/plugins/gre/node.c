@@ -100,6 +100,8 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
 		gre_tunnel_key_t *cached_key, u32 *tun_sw_if_index,
 		u32 *cached_tun_sw_if_index, int is_ipv6)
 {
+  //debug
+  clib_warning("Key details - gtk_v4: %U", format_gre_key4, &key->gtk_v4);
   const uword *p;
   p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
 		      hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
