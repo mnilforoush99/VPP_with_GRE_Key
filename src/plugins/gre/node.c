@@ -102,13 +102,9 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
 {
   //debug
   if (!is_ipv6) {
-    gre_tunnel_key4_t *k4 = &key->gtk_v4;
-    clib_warning("Key details - src: %U dst: %U fib: %d type: %d mode: %d",
-                 format_ip4_address, &k4->src,
-                 format_ip4_address, &k4->dst,
-                 k4->fib_index,
-                 k4->tunnel_type,
-                 k4->mode);
+    clib_warning("Key details - key struct size: %u", sizeof(key->gtk_v4));
+    clib_warning("Key v4 details: %u", key->gtk_v4);
+
   }
 //end debug print
   const uword *p;
