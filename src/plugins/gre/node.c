@@ -225,15 +225,37 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
     u32 gre_key[2] = {0, 0};
     if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
     {
+        //debug print time measurement
+        u64 t_key = clib_cpu_time_now();
+
         gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[0];
         gre_key[0] = clib_net_to_host_u32(grek->key);
         vlib_buffer_advance(b[0], sizeof(u32));
+        //more debug
+        // Track key processing time
+        u64 t_key_done = clib_cpu_time_now();
+        if ((t_key_done - t_key) > 500) {
+            vlib_node_increment_counter(vm, gre4_input_node.index,
+                                      GRE_COUNTER_KEY_CYCLES,
+                                      t_key_done - t_key);
+        }
     }
     if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
     {
+        //debug print time measurement
+        u64 t_key = clib_cpu_time_now();
+
         gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[1];
         gre_key[1] = clib_net_to_host_u32(grek->key);
         vlib_buffer_advance(b[1], sizeof(u32));
+        //more debug
+        // Track key processing time
+        u64 t_key_done = clib_cpu_time_now();
+        if ((t_key_done - t_key) > 500) {
+            vlib_node_increment_counter(vm, gre4_input_node.index,
+                                      GRE_COUNTER_KEY_CYCLES,
+                                      t_key_done - t_key);
+        }
     }
 
 
@@ -399,9 +421,19 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
       u32 gre_key = 0;
       if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
       {
+          //debug print time measurement
+          u64 t_key = clib_cpu_time_now();
+
           gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[0];
           gre_key = clib_net_to_host_u32(grek->key);
           vlib_buffer_advance(b[0], sizeof(u32));
+          // Track key processing time
+          u64 t_key_done = clib_cpu_time_now();
+          if ((t_key_done - t_key) > 500) {
+              vlib_node_increment_counter(vm, gre4_input_node.index,
+                                        GRE_COUNTER_KEY_CYCLES,
+                                        t_key_done - t_key);
+          }
       }
 
       if (PREDICT_TRUE (cached_protocol == gre[0]->protocol))
