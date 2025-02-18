@@ -123,12 +123,14 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
   p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
 		      hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
   // debug
-  if (p != NULL) {
-    u64 t1 = clib_cpu_time_now();
-    vlib_node_increment_counter(vm, gre4_input_node.index, 
-                              GRE_COUNTER_LOOKUP_CYCLES, 
-                              t1 - t0);
+  u64 t1 = clib_cpu_time_now();
+  // Track lookup time distribution
+  if ((t1 - t0) > 1000) {
+  vlib_node_increment_counter(vm, gre4_input_node.index,
+                            GRE_ERROR_LOOKUP_CYCLES,
+                            t1 - t0);
   }
+
    // debug fixed the code
   //clib_warning("Tunnel lookup result: %d", p ? 1 : 0);
   if (PREDICT_FALSE (!p))
@@ -155,7 +157,7 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 {
   //debug
   u64 t0 = clib_cpu_time_now();
-  
+
   gre_main_t *gm = &gre_main;
   u32 *from, n_left_from;
   vlib_buffer_t *bufs[VLIB_FRAME_SIZE], **b = bufs;
