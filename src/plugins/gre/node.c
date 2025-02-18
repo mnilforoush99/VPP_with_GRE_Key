@@ -146,13 +146,18 @@
    n_left_from = frame->n_vectors;
    vlib_get_buffers (vm, from, bufs, n_left_from);
  
-   if (is_ipv6)
-     clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
-   else
-     clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
+   //if (is_ipv6)
+   //  clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
+   //else
+   //  clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
  
    while (n_left_from >= 2)
      {
+      if (is_ipv6)
+        clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
+      else
+        clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
+  
        const ip6_header_t *ip6[2];
        const ip4_header_t *ip4[2];
        const gre_header_t *gre[2];
@@ -329,6 +334,11 @@
  
    while (n_left_from >= 1)
      {
+      if (is_ipv6)
+        clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
+    else
+       clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
+       
        const ip6_header_t *ip6[1];
        const ip4_header_t *ip4[1];
        const gre_header_t *gre[1];
