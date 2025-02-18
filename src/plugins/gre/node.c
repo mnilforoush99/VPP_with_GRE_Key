@@ -637,6 +637,9 @@ gre_setup_node (vlib_main_t *vm, u32 node_index)
 static clib_error_t *
 gre_input_init (vlib_main_t *vm)
 {
+  //debug for time measurement
+  u64 t0 = clib_cpu_time_now();
+
   gre_main_t *gm = &gre_main;
   vlib_node_t *ethernet_input, *ip4_input, *ip6_input, *mpls_unicast_input;
 
@@ -676,6 +679,11 @@ gre_input_init (vlib_main_t *vm)
   gre_register_input_protocol (vm, GRE_PROTOCOL_mpls_unicast,
 			       mpls_unicast_input->index, GRE_TUNNEL_TYPE_L3);
 
+  //debug for time measurement
+  u64 t1 = clib_cpu_time_now();
+  clib_warning("Protocol registration init time: %lu cycles", t1 - t0);
+
+    
   return 0;
 }
 
