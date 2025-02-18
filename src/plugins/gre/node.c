@@ -214,6 +214,8 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 	  ip4[0] = vlib_buffer_get_current (b[0]);
 	  ip4[1] = vlib_buffer_get_current (b[1]);
 	  gre[0] = (void *) (ip4[0] + 1);
+    // debug print
+    clib_warning("GRE flags: 0x%x", clib_net_to_host_u16(gre[0]->flags_and_version));
 	  gre[1] = (void *) (ip4[1] + 1);
 	  vlib_buffer_advance (b[0], sizeof (*ip4[0]) + sizeof (*gre[0]));
 	  vlib_buffer_advance (b[1], sizeof (*ip4[0]) + sizeof (*gre[0]));
@@ -241,9 +243,13 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 	}
       else
 	{
+    // debug print
+    clib_warning("GRE protocol: 0x%x, cached: 0x%x", gre[0]->protocol, cached_protocol);
 	  cached_next_index = nidx[0] =
 	    sparse_vec_index (gm->next_by_protocol, gre[0]->protocol);
 	  cached_protocol = gre[0]->protocol;
+     // debug print
+     clib_warning("New protocol lookup - protocol: 0x%x, next_index: %d", gre[0]->protocol, nidx[0]);
 	}
       if (PREDICT_TRUE (cached_protocol == gre[1]->protocol))
 	{
@@ -384,6 +390,8 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 	  /* ip4_local hands us the ip header, not the gre header */
 	  ip4[0] = vlib_buffer_get_current (b[0]);
 	  gre[0] = (void *) (ip4[0] + 1);
+    // debug print
+    clib_warning("GRE flags: 0x%x", clib_net_to_host_u16(gre[0]->flags_and_version));
 	  vlib_buffer_advance (b[0], sizeof (*ip4[0]) + sizeof (*gre[0]));
 	}
 
@@ -402,9 +410,14 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 	}
       else
 	{
+    // debug print
+    clib_warning("GRE protocol: 0x%x, cached: 0x%x", gre[0]->protocol, cached_protocol);
 	  cached_next_index = nidx[0] =
 	    sparse_vec_index (gm->next_by_protocol, gre[0]->protocol);
 	  cached_protocol = gre[0]->protocol;
+    // debug print
+    clib_warning("New protocol lookup - protocol: 0x%x, next_index: %d",
+      gre[0]->protocol, nidx[0]);
 	}
 
       ni[0] = vec_elt (gm->next_by_protocol, nidx[0]);
