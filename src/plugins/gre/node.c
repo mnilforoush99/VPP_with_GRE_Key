@@ -101,11 +101,11 @@
      u32 *cached_tun_sw_if_index, int is_ipv6)
  {
    //debug 1
-   if (!is_ipv6) {
-     clib_warning("Key details - key struct size: %u", sizeof(key->gtk_v4));
-     clib_warning("Key v4 details: %u", key->gtk_v4);
- 
-   }
+   //if (!is_ipv6) {
+   //  clib_warning("Key details - key struct size: %u", sizeof(key->gtk_v4));
+   //  clib_warning("Key v4 details: %u", key->gtk_v4);
+ //
+   //}
  //end debug 1 print
    const uword *p;
    p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
