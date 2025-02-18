@@ -190,7 +190,11 @@
      ip4[0] = vlib_buffer_get_current (b[0]);
      ip4[1] = vlib_buffer_get_current (b[1]);
      gre[0] = (void *) (ip4[0] + 1);
+     //debug
+     clib_warning("GRE header flags[0]: 0x%x", clib_net_to_host_u16(gre[0]->flags_and_version));
      gre[1] = (void *) (ip4[1] + 1);
+     //debug
+     clib_warning("GRE header flags[1]: 0x%x", clib_net_to_host_u16(gre[1]->flags_and_version));
      vlib_buffer_advance (b[0], sizeof (*ip4[0]) + sizeof (*gre[0]));
      vlib_buffer_advance (b[1], sizeof (*ip4[0]) + sizeof (*gre[0]));
    }
@@ -201,13 +205,19 @@
      {
          gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[0];
          gre_key[0] = clib_net_to_host_u32(grek->key);
+         //debug
+         clib_warning("Extracted GRE key[0]: %u", gre_key[0]);
          vlib_buffer_advance(b[0], sizeof(u32));
+         clib_warning("Buffer[0] advanced by %u bytes", sizeof(u32)); //debug
      }
      if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
      {
          gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[1];
          gre_key[1] = clib_net_to_host_u32(grek->key);
+         //debug
+         clib_warning("Extracted GRE key[1]: %u", gre_key[1]);
          vlib_buffer_advance(b[1], sizeof(u32));
+         clib_warning("Buffer[1] advanced by %u bytes", sizeof(u32));  //debug
      }
  
  
@@ -275,9 +285,11 @@
    }
        else
    {
+    clib_warning("Key before tunnel lookup[0]: %u", gre_key[0]); //debug
      gre_mk_key4(ip4[0]->dst_address, ip4[0]->src_address,
                  vnet_buffer(b[0])->ip.fib_index, type[0],
                  TUNNEL_MODE_P2P, 0, gre_key[0], &key[0].gtk_v4);
+     clib_warning("Key before tunnel lookup[1]: %u", gre_key[1]); //debug
      gre_mk_key4(ip4[1]->dst_address, ip4[1]->src_address,
                  vnet_buffer(b[1])->ip.fib_index, type[1],
                  TUNNEL_MODE_P2P, 0, gre_key[1], &key[1].gtk_v4);
@@ -353,6 +365,9 @@
      /* ip6_local hands us the ip header, not the gre header */
      ip6[0] = vlib_buffer_get_current (b[0]);
      gre[0] = (void *) (ip6[0] + 1);
+     //debug
+     clib_warning("GRE header flags: 0x%x", clib_net_to_host_u16(gre[0]->flags_and_version));
+
      vlib_buffer_advance (b[0], sizeof (*ip6[0]) + sizeof (*gre[0]));
    }
        else
@@ -369,7 +384,11 @@
        {
            gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[0];
            gre_key = clib_net_to_host_u32(grek->key);
+           //debug
+           clib_warning("Extracted GRE key: %u", gre_key);
            vlib_buffer_advance(b[0], sizeof(u32));
+           //debug
+           clib_warning("Buffer advanced by %u bytes", sizeof(u32));
        }
  
        if (PREDICT_TRUE (cached_protocol == gre[0]->protocol))
@@ -409,6 +428,8 @@
    }
        else
    {
+    //debug
+    clib_warning("Key before tunnel lookup: %u", gre_key);
      gre_mk_key4(ip4[0]->dst_address, ip4[0]->src_address,
                  vnet_buffer(b[0])->ip.fib_index, type[0],
                  TUNNEL_MODE_P2P, 0, gre_key, &key[0].gtk_v4);
