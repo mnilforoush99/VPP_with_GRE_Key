@@ -153,6 +153,9 @@ always_inline uword
 gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 	   const int is_ipv6)
 {
+  //debug
+  u64 t0 = clib_cpu_time_now();
+  
   gre_main_t *gm = &gre_main;
   u32 *from, n_left_from;
   vlib_buffer_t *bufs[VLIB_FRAME_SIZE], **b = bufs;
