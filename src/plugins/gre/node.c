@@ -22,12 +22,11 @@
 #include <vppinfra/sparse_vec.h>
 
 // Add at the top of node.c with other declarations
-vlib_node_counter_t gre_timing_counter;
-enum {
+typedef enum {
   GRE_COUNTER_LOOKUP_CYCLES,
   GRE_COUNTER_TOTAL_CYCLES,
   GRE_N_COUNTERS,
-};
+} gre_counter_t;
 
 
 #define foreach_gre_input_next                                                \
@@ -110,22 +109,27 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
 		u32 *cached_tun_sw_if_index, int is_ipv6)
 {
   //debug
+  vlib_main_t *vm = vlib_get_main();
+  u64 t0 = clib_cpu_time_now();
+
+  //debug fixed the code
   //if (!is_ipv6) {
   //  clib_warning("Key details - key struct size: %u", sizeof(key->gtk_v4));
   //  clib_warning("Key v4 details: %u", key->gtk_v4);
   //
   //}
-//end debug print
+  //end debug print
   const uword *p;
   p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
 		      hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
   // debug
-  if (PREDICT_TRUE(p)) {
+  if (p != NULL) {
     u64 t1 = clib_cpu_time_now();
     vlib_node_increment_counter(vm, gre4_input_node.index, 
                               GRE_COUNTER_LOOKUP_CYCLES, 
                               t1 - t0);
- }
+  }
+   // debug fixed the code
   //clib_warning("Tunnel lookup result: %d", p ? 1 : 0);
   if (PREDICT_FALSE (!p))
     {
@@ -149,9 +153,6 @@ always_inline uword
 gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 	   const int is_ipv6)
 {
-  //debug for time measurement
-  u64 t0 = clib_cpu_time_now();
-
   gre_main_t *gm = &gre_main;
   u32 *from, n_left_from;
   vlib_buffer_t *bufs[VLIB_FRAME_SIZE], **b = bufs;
@@ -475,8 +476,8 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
   //debug for time measurement
   u64 tend = clib_cpu_time_now();
   vlib_node_increment_counter(vm, gre4_input_node.index,
-                          GRE_COUNTER_TOTAL_CYCLES,
-                          tend - t0);
+                            GRE_COUNTER_TOTAL_CYCLES,
+                            tend - t0);  
 
   return frame->n_vectors;
 }
