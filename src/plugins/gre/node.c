@@ -26,6 +26,7 @@ typedef enum {
   GRE_COUNTER_LOOKUP_CYCLES,
   GRE_COUNTER_TOTAL_CYCLES,
   GRE_N_COUNTERS,
+  GRE_COUNTER_KEY_CYCLES,
 } gre_counter_t;
 
 
