@@ -21,6 +21,15 @@
 #include <vnet/mpls/mpls.h>
 #include <vppinfra/sparse_vec.h>
 
+// Add at the top of node.c with other declarations
+vlib_node_counter_t gre_timing_counter;
+enum {
+  GRE_COUNTER_LOOKUP_CYCLES,
+  GRE_COUNTER_TOTAL_CYCLES,
+  GRE_N_COUNTERS,
+};
+
+
 #define foreach_gre_input_next                                                \
   _ (PUNT, "error-punt")                                                      \
   _ (DROP, "error-drop")                                                      \
@@ -101,10 +110,6 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
 		u32 *cached_tun_sw_if_index, int is_ipv6)
 {
   //debug
-  struct timespec ts;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  clib_warning("Tunnel lookup attempt at %lu.%09lu - key struct size: %u", 
-             ts.tv_sec, ts.tv_nsec, sizeof(key->gtk_v4));
   //if (!is_ipv6) {
   //  clib_warning("Key details - key struct size: %u", sizeof(key->gtk_v4));
   //  clib_warning("Key v4 details: %u", key->gtk_v4);
@@ -115,9 +120,12 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
   p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
 		      hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
   // debug
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  clib_warning("Tunnel lookup result: %d at %lu.%09lu", 
-             p ? 1 : 0, ts.tv_sec, ts.tv_nsec);
+  if (PREDICT_TRUE(p)) {
+    u64 t1 = clib_cpu_time_now();
+    vlib_node_increment_counter(vm, gre4_input_node.index, 
+                              GRE_COUNTER_LOOKUP_CYCLES, 
+                              t1 - t0);
+ }
   //clib_warning("Tunnel lookup result: %d", p ? 1 : 0);
   if (PREDICT_FALSE (!p))
     {
@@ -142,8 +150,7 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
 	   const int is_ipv6)
 {
   //debug for time measurement
-  struct timespec ts_start, ts_end;
-  clock_gettime(CLOCK_MONOTONIC, &ts_start);
+  u64 t0 = clib_cpu_time_now();
 
   gre_main_t *gm = &gre_main;
   u32 *from, n_left_from;
@@ -466,10 +473,10 @@ gre_input (vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame,
     GRE_ERROR_PKTS_DECAP, n_left_from);
   
   //debug for time measurement
-  clock_gettime(CLOCK_MONOTONIC, &ts_end);
-  clib_warning("Packet processing time: %lu nsec", 
-             (ts_end.tv_sec - ts_start.tv_sec) * 1000000000 + 
-             (ts_end.tv_nsec - ts_start.tv_nsec));
+  u64 tend = clib_cpu_time_now();
+  vlib_node_increment_counter(vm, gre4_input_node.index,
+                          GRE_COUNTER_TOTAL_CYCLES,
+                          tend - t0);
 
   return frame->n_vectors;
 }
