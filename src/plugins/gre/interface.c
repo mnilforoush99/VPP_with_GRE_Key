@@ -78,8 +78,22 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
 
   if (!a->is_ipv6)
     {
+      //debug 1
+      clib_warning("GRE tunnel configuration - src: %U dst: %U key: %d",
+        format_ip4_address, &a->src.ip4,
+        format_ip4_address, &a->dst.ip4,
+        a->gre_key);
       gre_mk_key4 (a->src.ip4, a->dst.ip4, outer_fib_index, a->type, a->mode,
 		   a->session_id, a->gre_key, &key->gtk_v4);
+       //debug 2
+      clib_warning("Created key structure:");
+      clib_warning("  gtk_src: %U", format_ip4_address, &key->gtk_v4.gtk_src);
+      clib_warning("  gtk_dst: %U", format_ip4_address, &key->gtk_v4.gtk_dst);
+      clib_warning("  fib_index: %d", key->gtk_v4.gtk_common.fib_index);
+      clib_warning("  gre_key: %d", key->gtk_v4.gtk_common.gre_key);
+      clib_warning("  type: %d", key->gtk_v4.gtk_common.type);
+      clib_warning("  mode: %d", key->gtk_v4.gtk_common.mode);
+
       p = hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
     }
   else
