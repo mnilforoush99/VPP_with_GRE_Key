@@ -303,11 +303,11 @@
        else
    {
     clib_warning("Key before tunnel lookup[0]: %u", gre_key[0]); //debug
-     gre_mk_key4(ip4[0]->dst_address, ip4[0]->src_address,
+     gre_mk_key4(ip4[0]->src_address, ip4[0]->dst_address,
                  vnet_buffer(b[0])->ip.fib_index, type[0],
                  TUNNEL_MODE_P2P, 0, gre_key[0], &key[0].gtk_v4);
      clib_warning("Key before tunnel lookup[1]: %u", gre_key[1]); //debug
-     gre_mk_key4(ip4[1]->dst_address, ip4[1]->src_address,
+     gre_mk_key4(ip4[1]->src_address, ip4[1]->dst_address,
                  vnet_buffer(b[1])->ip.fib_index, type[1],
                  TUNNEL_MODE_P2P, 0, gre_key[1], &key[1].gtk_v4);
      matched[0] = gre_match_key4 (&cached_key.gtk_v4, &key[0].gtk_v4);
@@ -446,10 +446,10 @@
        else
    {
     //debug
-    clib_warning("Key before tunnel lookup: %u", gre_key);
-     gre_mk_key4(ip4[0]->dst_address, ip4[0]->src_address,
-                 vnet_buffer(b[0])->ip.fib_index, type[0],
-                 TUNNEL_MODE_P2P, 0, gre_key, &key[0].gtk_v4);
+     clib_warning("Key before tunnel lookup: %u", gre_key);
+     gre_mk_key4(ip4[0]->src_address, ip4[0]->dst_address, 
+                vnet_buffer(b[0])->ip.fib_index, type[0], 
+                TUNNEL_MODE_P2P, 0, gre_key, &key[0].gtk_v4);
      matched[0] = gre_match_key4 (&cached_key.gtk_v4, &key[0].gtk_v4);
      //Debug3
      clib_warning("GRE tunnel lookup - src: %U dst: %U fib: %d type: %d key: %d",
