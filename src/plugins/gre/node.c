@@ -105,11 +105,11 @@
    clib_warning("- Total size: %u", sizeof(*key));
    if (!is_ipv6) {
        clib_warning("- Field offsets in gtk_v4:");
-       clib_warning("  dst_address: %lu", offsetof(gre_tunnel_key4_t_, dst));
-       clib_warning("  src_address: %lu", offsetof(gre_tunnel_key4_t_, src));
-       clib_warning("  fib_index: %lu", offsetof(gre_tunnel_key4_t_, fib_index));
-       clib_warning("  tunnel_type: %lu", offsetof(gre_tunnel_key4_t_, tunnel_type));
-       clib_warning("  gre_key: %lu", offsetof(gre_tunnel_key4_t_, gre_key));
+       clib_warning("  dst_address: %lu", offsetof(struct gre_tunnel_key4_t_, gtk_v4));
+       clib_warning("  src_address: %lu", offsetof(struct gre_tunnel_key4_t_, src));
+       clib_warning("  fib_index: %lu", offsetof(struct gre_tunnel_key4_t_, fib_index));
+       clib_warning("  tunnel_type: %lu", offsetof(struct gre_tunnel_key4_t_, tunnel_type));
+       clib_warning("  gre_key: %lu", offsetof(struct gre_tunnel_key4_t_, gre_key));
        
        clib_warning("- Field values:");
        clib_warning("  dst_address: %U", format_ip4_address, &key->gtk_v4.dst);
