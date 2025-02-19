@@ -101,11 +101,12 @@
      u32 *cached_tun_sw_if_index, int is_ipv6)
  {
    //debug 1
-   //if (!is_ipv6) {
-   //  clib_warning("Key details - key struct size: %u", sizeof(key->gtk_v4));
-   //  clib_warning("Key v4 details: %u", key->gtk_v4);
- //
-   //} //end debug 1 print
+   if (!is_ipv6) {
+     clib_warning("Key details - key struct size: %u", sizeof(key->gtk_v4));
+     clib_warning("Key v4 details: %u", key->gtk_v4);
+ 
+   }
+ //end debug 1 print
    const uword *p;
    p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
            hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
@@ -146,18 +147,13 @@
    n_left_from = frame->n_vectors;
    vlib_get_buffers (vm, from, bufs, n_left_from);
  
-   //if (is_ipv6)
-   //  clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
-   //else
-   //  clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
+   if (is_ipv6)
+     clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
+   else
+     clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
  
    while (n_left_from >= 2)
      {
-      if (is_ipv6)
-        clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
-      else
-        clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
-  
        const ip6_header_t *ip6[2];
        const ip4_header_t *ip4[2];
        const gre_header_t *gre[2];
@@ -334,11 +330,6 @@
  
    while (n_left_from >= 1)
      {
-      if (is_ipv6)
-        clib_memset (&cached_key.gtk_v6, 0xff, sizeof (cached_key.gtk_v6));
-    else
-       clib_memset (&cached_key.gtk_v4, 0xff, sizeof (cached_key.gtk_v4));
-       
        const ip6_header_t *ip6[1];
        const ip4_header_t *ip4[1];
        const gre_header_t *gre[1];
@@ -422,13 +413,13 @@
                  vnet_buffer(b[0])->ip.fib_index, type[0],
                  TUNNEL_MODE_P2P, 0, gre_key, &key[0].gtk_v4);
      matched[0] = gre_match_key4 (&cached_key.gtk_v4, &key[0].gtk_v4);
-     //Debug 3
-     //clib_warning("GRE tunnel lookup - src: %U dst: %U fib: %d type: %d key: %d",
-     //format_ip4_address, &ip4[0]->src_address,
-     //format_ip4_address, &ip4[0]->dst_address,
-     //vnet_buffer(b[0])->ip.fib_index,
-     //type[0],
-     //gre_key);
+     //Debug3
+     clib_warning("GRE tunnel lookup - src: %U dst: %U fib: %d type: %d key: %d",
+     format_ip4_address, &ip4[0]->src_address,
+     format_ip4_address, &ip4[0]->dst_address,
+     vnet_buffer(b[0])->ip.fib_index,
+     type[0],
+     gre_key);
    }
  
        tun_sw_if_index[0] = cached_tun_sw_if_index;
