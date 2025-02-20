@@ -213,8 +213,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
   const ip46_address_t *dst;
   ip4_and_gre_header_t *h4;
   ip6_and_gre_header_t *h6;
-  //gre_header_t *gre;
-  gre_header_with_key_t *gre;  // Changed to use key-capable header
+  gre_header_t *gre;
   u8 *rewrite = NULL;
   gre_tunnel_t *t;
   u32 ti;
@@ -285,7 +284,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     ///* Add key after GRE header */
     //u32 *key = (u32 *)(gre + 1);
     //*key = clib_host_to_net_u32(t->gre_key);
-    
+
     gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
     u32 *key = (u32 *)(gre + 1);
     *key = clib_host_to_net_u32(t->gre_key);
