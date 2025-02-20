@@ -429,6 +429,7 @@ gre_mk_key4 (ip4_address_t src,
        u32 gre_key,
        gre_tunnel_key4_t * key)
 {
+  clib_memset(key, 0, sizeof(*key));  // Zero entire structure first
   key->gtk_src = src;
   key->gtk_dst = dst;
   key->gtk_common.type = ttype;
