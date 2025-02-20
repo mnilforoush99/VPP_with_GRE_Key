@@ -128,7 +128,10 @@
    p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
            hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
    // debug 2
-   //clib_warning("Tunnel lookup result: %d", p ? 1 : 0);
+   clib_warning("Tunnel lookup result: %d", p ? 1 : 0);
+   //debug 5
+   clib_warning("Lookup key memory: %U", format_hex_bytes, &key->gtk_v4, sizeof(gre_tunnel_key4_t));
+   clib_warning("Lookup hash value: %u", hash_of_mem(&key->gtk_v4, sizeof(gre_tunnel_key4_t)));
    if (PREDICT_FALSE (!p))
      {
        *next = GRE_INPUT_NEXT_DROP;
@@ -303,11 +306,11 @@
        else
    {
     clib_warning("Key before tunnel lookup[0]: %u", gre_key[0]); //debug
-     gre_mk_key4(ip4[0]->src_address, ip4[0]->dst_address,
+     gre_mk_key4(ip4[0]->dst_address, ip4[0]->src_address,
                  vnet_buffer(b[0])->ip.fib_index, type[0],
                  TUNNEL_MODE_P2P, 0, gre_key[0], &key[0].gtk_v4);
      clib_warning("Key before tunnel lookup[1]: %u", gre_key[1]); //debug
-     gre_mk_key4(ip4[1]->src_address, ip4[1]->dst_address,
+     gre_mk_key4(ip4[1]->dst_address, ip4[1]->src_address,
                  vnet_buffer(b[1])->ip.fib_index, type[1],
                  TUNNEL_MODE_P2P, 0, gre_key[1], &key[1].gtk_v4);
      matched[0] = gre_match_key4 (&cached_key.gtk_v4, &key[0].gtk_v4);
@@ -447,7 +450,7 @@
    {
     //debug
      clib_warning("Key before tunnel lookup: %u", gre_key);
-     gre_mk_key4(ip4[0]->src_address, ip4[0]->dst_address, 
+     gre_mk_key4(ip4[0]->dst_address, ip4[0]->src_address,
                 vnet_buffer(b[0])->ip.fib_index, type[0], 
                 TUNNEL_MODE_P2P, 0, gre_key, &key[0].gtk_v4);
      matched[0] = gre_match_key4 (&cached_key.gtk_v4, &key[0].gtk_v4);
