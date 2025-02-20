@@ -20,7 +20,7 @@
  #include <gre/gre.h>
  #include <vnet/mpls/mpls.h>
  #include <vppinfra/sparse_vec.h>
- #include <vppinfra/hash.h>
+
  
  #define foreach_gre_input_next                                                \
    _ (PUNT, "error-punt")                                                      \
@@ -132,7 +132,7 @@
    clib_warning("Tunnel lookup result: %d", p ? 1 : 0);
    //debug 5
    clib_warning("Lookup key memory: %U", format_hex_bytes, &key->gtk_v4, sizeof(gre_tunnel_key4_t));
-   clib_warning("Lookup hash value: %u", hash_of_mem(&key->gtk_v4, sizeof(gre_tunnel_key4_t)));
+   clib_warning("Lookup hash value: %u", hash_memory(&key->gtk_v4, sizeof(gre_tunnel_key4_t)));
    if (PREDICT_FALSE (!p))
      {
        *next = GRE_INPUT_NEXT_DROP;
