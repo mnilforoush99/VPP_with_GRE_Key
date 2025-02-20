@@ -24,6 +24,7 @@
 #include <vnet/mpls/mpls.h>
 #include <vnet/l2/l2_input.h>
 #include <vnet/teib/teib.h>
+#include <vppinfra/hash.h>
 
 u8 *
 format_gre_tunnel_type (u8 *s, va_list *args)

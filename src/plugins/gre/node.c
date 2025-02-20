@@ -20,6 +20,7 @@
  #include <gre/gre.h>
  #include <vnet/mpls/mpls.h>
  #include <vppinfra/sparse_vec.h>
+ #include <vppinfra/hash.h>
  
  #define foreach_gre_input_next                                                \
    _ (PUNT, "error-punt")                                                      \
