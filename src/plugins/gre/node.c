@@ -203,8 +203,19 @@
      ip6[1] = vlib_buffer_get_current (b[1]);
      gre[0] = (void *) (ip6[0] + 1);
      gre[1] = (void *) (ip6[1] + 1);
-     vlib_buffer_advance (b[0], sizeof (*ip6[0]) + sizeof (*gre[0]));
-     vlib_buffer_advance (b[1], sizeof (*ip6[0]) + sizeof (*gre[0]));
+     //vlib_buffer_advance (b[0], sizeof (*ip6[0]) + sizeof (*gre[0]));
+     //vlib_buffer_advance (b[1], sizeof (*ip6[0]) + sizeof (*gre[0]));
+     // Calculate total header size for each packet
+     u16 gre_hdr_size0 = sizeof(*gre[0]);
+     u16 gre_hdr_size1 = sizeof(*gre[1]);
+     if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
+         gre_hdr_size0 += sizeof(u32);
+     if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
+         gre_hdr_size1 += sizeof(u32);
+     
+    // Single buffer advance for each packet
+     vlib_buffer_advance (b[0], sizeof (*ip6[0]) + gre_hdr_size0);
+     vlib_buffer_advance (b[1], sizeof (*ip6[1]) + gre_hdr_size1);
    }
        else
    {
@@ -217,8 +228,19 @@
      gre[1] = (void *) (ip4[1] + 1);
      //debug
      clib_warning("GRE header flags[1]: 0x%x", clib_net_to_host_u16(gre[1]->flags_and_version));
-     vlib_buffer_advance (b[0], sizeof (*ip4[0]) + sizeof (*gre[0]));
-     vlib_buffer_advance (b[1], sizeof (*ip4[0]) + sizeof (*gre[0]));
+     //vlib_buffer_advance (b[0], sizeof (*ip4[0]) + sizeof (*gre[0]));
+     //vlib_buffer_advance (b[1], sizeof (*ip4[0]) + sizeof (*gre[0]));
+     // Calculate total header size for each packet
+     u16 gre_hdr_size0 = sizeof(*gre[0]);
+     u16 gre_hdr_size1 = sizeof(*gre[1]);
+     if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
+         gre_hdr_size0 += sizeof(u32);
+     if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
+         gre_hdr_size1 += sizeof(u32);
+     
+     // Single buffer advance for each packet
+     vlib_buffer_advance (b[0], sizeof (*ip4[0]) + gre_hdr_size0);
+     vlib_buffer_advance (b[1], sizeof (*ip4[1]) + gre_hdr_size1);
    }
  
      // GRE key processing here
@@ -229,7 +251,7 @@
          gre_key[0] = clib_net_to_host_u32(grek->key);
          //debug
          clib_warning("Extracted GRE key[0]: %u", gre_key[0]);
-         vlib_buffer_advance(b[0], sizeof(u32));
+         //vlib_buffer_advance(b[0], sizeof(u32));
          clib_warning("Buffer[0] advanced by %u bytes", sizeof(u32)); //debug
      }
      if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
@@ -238,7 +260,7 @@
          gre_key[1] = clib_net_to_host_u32(grek->key);
          //debug
          clib_warning("Extracted GRE key[1]: %u", gre_key[1]);
-         vlib_buffer_advance(b[1], sizeof(u32));
+         //vlib_buffer_advance(b[1], sizeof(u32));
          clib_warning("Buffer[1] advanced by %u bytes", sizeof(u32));  //debug
      }
  
