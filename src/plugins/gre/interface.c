@@ -96,7 +96,7 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
       clib_warning("  mode: %d", key->gtk_v4.gtk_common.mode);
       //debug 3
       clib_warning("Storage key memory: %U", format_hex_bytes, &key->gtk_v4, sizeof(gre_tunnel_key4_t));
-      clib_warning("Storage hash value: %u", hash_memory(&key->gtk_v4, sizeof(gre_tunnel_key4_t), 0));
+      clib_warning("Storage hash value: %u", hash_memory((void *)&key->gtk_v4, sizeof(gre_tunnel_key4_t), 0));
       p = hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
     }
   else
