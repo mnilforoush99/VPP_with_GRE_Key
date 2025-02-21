@@ -235,20 +235,13 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       //vec_validate (rewrite, sizeof (*h4) - 1);
       // Allocate space for maximum header size including key
       vec_validate (rewrite, sizeof (*h4) + sizeof(u32) - 1);
-      clib_memset(rewrite, 0, vec_len(rewrite));  // Initialize buffer to zeros //for test
       h4 = (ip4_and_gre_header_t *) rewrite;
       gre = &h4->gre;
       //debug 3
       // Add debug print for rewrite buffer
       clib_warning("Rewrite buffer size: %d", vec_len(rewrite));
       clib_warning("GRE header offset: %d", (u8*)gre - rewrite);
-      //debug 7
-      // Debug print rewrite buffer contents
-     clib_warning("Rewrite buffer contents:");
-     int i;
-     for (i = 0; i < vec_len(rewrite); i++) {
-       clib_warning("byte[%d]: 0x%02x", i, rewrite[i]);
-      }
+
       h4->ip4.ip_version_and_header_length = 0x45;
       h4->ip4.ttl = 254;
       h4->ip4.protocol = IP_PROTOCOL_GRE;
@@ -354,14 +347,19 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   //access GRE headers
   gre_header_t *gre0;
   gre_header_with_key_t *grek0;
+  u16 gre_flags;
+  u32 gre_key;
+  u16 gre_proto;
+  u8 *packet_data;
+  int i;
   gre0 = &ip0->gre;
   grek0 = (gre_header_with_key_t *)gre0;
   // end GRE headers
 
    // Save GRE header values
-   u16 gre_flags = grek0->flags_and_version;
-   u32 gre_key = grek0->key;
-   u16 gre_proto = grek0->protocol;
+   gre_flags = grek0->flags_and_version;
+   gre_key = grek0->key;
+   gre_proto = grek0->protocol;
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
@@ -388,6 +386,13 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     format_ip4_address, &ip0->ip4.dst_address,
     clib_net_to_host_u16(grek0->flags_and_version),
     clib_net_to_host_u32(grek0->key));
+
+  // Add packet data inspection here
+  packet_data = vlib_buffer_get_current(b0);
+  clib_warning("Packet data before transmission:");
+  for (i = 0; i < 32; i++) {
+    clib_warning("byte[%d]: 0x%02x", i, packet_data[i]);
+  }
 
 }
 
