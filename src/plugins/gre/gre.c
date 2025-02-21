@@ -331,8 +331,10 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   flags = pointer_to_uword (data);
 
   //debug 2
+  gre_header_t *gre0;
   gre_header_with_key_t *grek0;
-  grek0 = (gre_header_with_key_t *)(ip0 + 1);
+  gre0 = &ip0->gre;
+  grek0 = (gre_header_with_key_t *)gre0;
   clib_warning("TX GRE44 - src: %U dst: %U flags: 0x%x key: 0x%x",
     format_ip4_address, &ip0->ip4.src_address,
     format_ip4_address, &ip0->ip4.dst_address,
