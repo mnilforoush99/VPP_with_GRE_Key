@@ -237,6 +237,10 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       vec_validate (rewrite, sizeof (*h4) + sizeof(u32) - 1);
       h4 = (ip4_and_gre_header_t *) rewrite;
       gre = &h4->gre;
+      //debug 3
+      // Add debug print for rewrite buffer
+      clib_warning("Rewrite buffer size: %d", vec_len(rewrite));
+      clib_warning("GRE header offset: %d", (u8*)gre - rewrite);
       h4->ip4.ip_version_and_header_length = 0x45;
       h4->ip4.ttl = 254;
       h4->ip4.protocol = IP_PROTOCOL_GRE;
@@ -304,6 +308,10 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
     grek->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
     grek->key = clib_host_to_net_u32(t->gre_key);
+    //debug 4
+    clib_warning("Rewrite GRE - flags: 0x%x key: 0x%x",
+      clib_net_to_host_u16(grek->flags_and_version),
+      clib_net_to_host_u32(grek->key));
     clib_warning("Setting GRE key: 0x%x", t->gre_key);
 
   }
@@ -324,6 +332,11 @@ static void
 gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 	     const void *data)
 {
+  //debug 5
+  // Add buffer content debug before fixup
+  clib_warning("Before fixup - buffer current: %d, length: %d",
+    b0->current_data,
+    b0->current_length);
   tunnel_encap_decap_flags_t flags;
   ip4_and_gre_header_t *ip0;
 
@@ -352,6 +365,12 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   grek0->flags_and_version = gre_flags;
   grek0->key = gre_key;
   grek0->protocol = gre_proto;
+
+  //debug 6
+    // Add buffer content debug after fixup  
+    clib_warning("After fixup - buffer current: %d, length: %d",
+      b0->current_data,
+      b0->current_length);
 
   ip0->ip4.checksum = ip4_header_checksum (&ip0->ip4);
 
