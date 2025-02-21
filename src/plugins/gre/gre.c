@@ -241,6 +241,13 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       // Add debug print for rewrite buffer
       clib_warning("Rewrite buffer size: %d", vec_len(rewrite));
       clib_warning("GRE header offset: %d", (u8*)gre - rewrite);
+      //debug 7
+      // Debug print rewrite buffer contents
+     clib_warning("Rewrite buffer contents:");
+     int i;
+     for (i = 0; i < vec_len(rewrite); i++) {
+       clib_warning("byte[%d]: 0x%02x", i, rewrite[i]);
+      }
       h4->ip4.ip_version_and_header_length = 0x45;
       h4->ip4.ttl = 254;
       h4->ip4.protocol = IP_PROTOCOL_GRE;
@@ -348,8 +355,6 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   gre_header_with_key_t *grek0;
   gre0 = &ip0->gre;
   grek0 = (gre_header_with_key_t *)gre0;
-  u8 *packet_data;
-  int i;
   // end GRE headers
 
    // Save GRE header values
@@ -383,12 +388,6 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     clib_net_to_host_u16(grek0->flags_and_version),
     clib_net_to_host_u32(grek0->key));
 
-  //debug 7
-    // Add packet data inspection
-  packet_data = vlib_buffer_get_current(b0);
-  clib_warning("Packet data (first 32 bytes):");
-  for (i = 0; i < 32; i++) {
-    clib_warning("byte[%d]: 0x%02x", i, packet_data[i]);
 }
 
 static void
