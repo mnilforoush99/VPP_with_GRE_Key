@@ -240,19 +240,19 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h4->ip4.ip_version_and_header_length = 0x45;
       h4->ip4.ttl = 254;
       //setting IP ID
-      h4->ip4.id = ip4_next_id();  // Add proper IP ID
-      h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
+      h4->ip4.fragment_id = ip4_next_id();  // Add proper IP ID
       h4->ip4.protocol = IP_PROTOCOL_GRE;
       /* fixup ip4 header length and checksum after-the-fact */
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
       h4->ip4.dst_address.as_u32 = dst->ip4.as_u32;
-      h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
 
       // Set total IP length including GRE header and key if present
       u16 total_length = sizeof(ip4_header_t) + sizeof(gre_header_t);
       if (t->key_present)
           total_length += sizeof(u32);
       h4->ip4.length = clib_host_to_net_u16(total_length);
+
+      h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
     }
   else
     {
