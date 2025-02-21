@@ -239,9 +239,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       gre = &h4->gre;
       h4->ip4.ip_version_and_header_length = 0x45;
       h4->ip4.ttl = 254;
-      //setting IP ID
-      hh4->ip4.fragment_id = clib_host_to_net_u16((u16)
-                             random_u32(&gm->random_seed));  // Add proper IP ID
+      //h4->ip4.fragment_id = 0; // Standard VPP practice for unfragmented packets
       h4->ip4.protocol = IP_PROTOCOL_GRE;
       /* fixup ip4 header length and checksum after-the-fact */
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
