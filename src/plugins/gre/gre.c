@@ -385,7 +385,8 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     // Add packet data inspection
   u8 *packet_data = vlib_buffer_get_current(b0);
   clib_warning("Packet data (first 32 bytes):");
-  for (int i = 0; i < 32; i++) {
+  int i;
+  for (i = 0; i < 32; i++) {
     clib_warning("byte[%d]: 0x%02x", i, packet_data[i]);
 }
 
