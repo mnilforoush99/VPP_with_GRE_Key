@@ -239,7 +239,6 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       gre = &h4->gre;
       h4->ip4.ip_version_and_header_length = 0x45;
       h4->ip4.ttl = 254;
-      //h4->ip4.fragment_id = 0; // Standard VPP practice for unfragmented packets
       h4->ip4.protocol = IP_PROTOCOL_GRE;
       /* fixup ip4 header length and checksum after-the-fact */
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
@@ -252,6 +251,11 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h4->ip4.length = clib_host_to_net_u16(total_length);
 
       h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
+      //debug 1
+      clib_warning("Outbound GRE - src: %U dst: %U key: %d",
+        format_ip4_address, &t->tunnel_src.ip4,
+        format_ip4_address, &dst->ip4,
+        t->gre_key);
     }
   else
     {
@@ -300,6 +304,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
     grek->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
     grek->key = clib_host_to_net_u32(t->gre_key);
+    clib_warning("Setting GRE key: 0x%x", t->gre_key);
 
   }
 
