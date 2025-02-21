@@ -235,6 +235,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       //vec_validate (rewrite, sizeof (*h4) - 1);
       // Allocate space for maximum header size including key
       vec_validate (rewrite, sizeof (*h4) + sizeof(u32) - 1);
+      clib_memset(rewrite, 0, vec_len(rewrite));  // Initialize buffer to zeros //for test
       h4 = (ip4_and_gre_header_t *) rewrite;
       gre = &h4->gre;
       //debug 3
