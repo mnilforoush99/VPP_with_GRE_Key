@@ -330,6 +330,14 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip0 = vlib_buffer_get_current (b0);
   flags = pointer_to_uword (data);
 
+  //debug 2
+  gre_header_t *gre0;
+  gre0 = (gre_header_t *)(ip0 + 1);
+  clib_warning("TX GRE44 - src: %U dst: %U flags: 0x%x",
+    format_ip4_address, &ip0->ip4.src_address,
+    format_ip4_address, &ip0->ip4.dst_address,
+    clib_net_to_host_u16(gre0->flags_and_version));
+
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
   ip0->ip4.length =
@@ -347,6 +355,14 @@ gre64_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   ip0 = vlib_buffer_get_current (b0);
   flags = pointer_to_uword (data);
+
+  //debug 3
+  gre_header_t *gre0;
+  gre0 = (gre_header_t *)(ip0 + 1);
+  clib_warning("TX GRE64 - src: %U dst: %U flags: 0x%x",
+    format_ip6_address, &ip0->ip6.src_address,
+    format_ip6_address, &ip0->ip6.dst_address,
+    clib_net_to_host_u16(gre0->flags_and_version));
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
@@ -380,6 +396,14 @@ gre46_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip0 = vlib_buffer_get_current (b0);
   flags = pointer_to_uword (data);
 
+  //debug 4
+  gre_header_t *gre0;
+  gre0 = (gre_header_t *)(ip0 + 1);
+  clib_warning("TX GRE46 - src: %U dst: %U flags: 0x%x",
+    format_ip4_address, &ip0->ip4.src_address,
+    format_ip4_address, &ip0->ip4.dst_address,
+    clib_net_to_host_u16(gre0->flags_and_version));
+
   /* Fixup the payload length field in the GRE tunnel encap that was applied
    * at the midchain node */
   ip0->ip6.payload_length = clib_host_to_net_u16 (
@@ -396,6 +420,14 @@ gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   ip0 = vlib_buffer_get_current (b0);
   flags = pointer_to_uword (data);
+
+  //debug 5
+  gre_header_t *gre0;
+  gre0 = (gre_header_t *)(ip0 + 1);
+  clib_warning("TX GRE66 - src: %U dst: %U flags: 0x%x",
+    format_ip6_address, &ip0->ip6.src_address,
+    format_ip6_address, &ip0->ip6.dst_address,
+    clib_net_to_host_u16(gre0->flags_and_version));
 
   /* Fixup the payload length field in the GRE tunnel encap that was applied
    * at the midchain node */
