@@ -243,6 +243,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       clib_warning("GRE header offset: %d", (u8*)gre - rewrite);
 
       h4->ip4.ip_version_and_header_length = 0x45;
+      h4->ip4.flags_and_fragment_offset = 0; //to prevent fragment offset field from being corrupted by GRE Key
       h4->ip4.ttl = 254;
       h4->ip4.protocol = IP_PROTOCOL_GRE;
       /* fixup ip4 header length and checksum after-the-fact */
