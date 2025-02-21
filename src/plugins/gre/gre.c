@@ -21,6 +21,7 @@
 #include <vnet/tunnel/tunnel_dp.h>
 #include <vpp/app/version.h>
 #include <vnet/plugin/plugin.h>
+#include <vnet/ip/ip4_packet.h>
 
 extern gre_main_t gre_main;
 
