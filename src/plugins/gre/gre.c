@@ -343,6 +343,8 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
+  // Clear fragment offset
+  ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
   //access GRE headers
