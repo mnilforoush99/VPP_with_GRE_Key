@@ -239,11 +239,20 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       gre = &h4->gre;
       h4->ip4.ip_version_and_header_length = 0x45;
       h4->ip4.ttl = 254;
+      //setting IP ID
+      h4->ip4.id = ip4_next_id();  // Add proper IP ID
+      h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
       h4->ip4.protocol = IP_PROTOCOL_GRE;
       /* fixup ip4 header length and checksum after-the-fact */
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
       h4->ip4.dst_address.as_u32 = dst->ip4.as_u32;
       h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
+
+      // Set total IP length including GRE header and key if present
+      u16 total_length = sizeof(ip4_header_t) + sizeof(gre_header_t);
+      if (t->key_present)
+          total_length += sizeof(u32);
+      h4->ip4.length = clib_host_to_net_u16(total_length);
     }
   else
     {
@@ -285,9 +294,13 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     //u32 *key = (u32 *)(gre + 1);
     //*key = clib_host_to_net_u32(t->gre_key);
 
-    gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
-    u32 *key = (u32 *)(gre + 1);
-    *key = clib_host_to_net_u32(t->gre_key);
+   // gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
+   // u32 *key = (u32 *)(gre + 1);
+   // *key = clib_host_to_net_u32(t->gre_key);
+
+    gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
+    grek->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
+    grek->key = clib_host_to_net_u32(t->gre_key);
 
   }
 
