@@ -331,12 +331,14 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   flags = pointer_to_uword (data);
 
   //debug 2
-  gre_header_t *gre0;
-  gre0 = (gre_header_t *)(ip0 + 1);
-  clib_warning("TX GRE44 - src: %U dst: %U flags: 0x%x",
+  gre_header_with_key_t *grek0;
+  grek0 = (gre_header_with_key_t *)(ip0 + 1);
+  clib_warning("TX GRE44 - src: %U dst: %U flags: 0x%x key: 0x%x",
     format_ip4_address, &ip0->ip4.src_address,
     format_ip4_address, &ip0->ip4.dst_address,
-    clib_net_to_host_u16(gre0->flags_and_version));
+    clib_net_to_host_u16(grek0->flags_and_version),
+    clib_net_to_host_u32(grek0->key));
+
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
