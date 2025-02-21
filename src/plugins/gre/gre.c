@@ -348,6 +348,8 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   gre_header_with_key_t *grek0;
   gre0 = &ip0->gre;
   grek0 = (gre_header_with_key_t *)gre0;
+  u8 *packet_data;
+  int i;
   // end GRE headers
 
    // Save GRE header values
@@ -383,9 +385,8 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   //debug 7
     // Add packet data inspection
-  u8 *packet_data = vlib_buffer_get_current(b0);
+  packet_data = vlib_buffer_get_current(b0);
   clib_warning("Packet data (first 32 bytes):");
-  int i;
   for (i = 0; i < 32; i++) {
     clib_warning("byte[%d]: 0x%02x", i, packet_data[i]);
 }
