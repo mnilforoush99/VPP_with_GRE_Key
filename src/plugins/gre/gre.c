@@ -380,6 +380,13 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     format_ip4_address, &ip0->ip4.dst_address,
     clib_net_to_host_u16(grek0->flags_and_version),
     clib_net_to_host_u32(grek0->key));
+
+  //debug 7
+    // Add packet data inspection
+  u8 *packet_data = vlib_buffer_get_current(b0);
+  clib_warning("Packet data (first 32 bytes):");
+  for (int i = 0; i < 32; i++) {
+    clib_warning("byte[%d]: 0x%02x", i, packet_data[i]);
 }
 
 static void
