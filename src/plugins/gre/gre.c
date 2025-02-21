@@ -330,24 +330,37 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip0 = vlib_buffer_get_current (b0);
   flags = pointer_to_uword (data);
 
-  //debug 2
+  //access GRE headers
   gre_header_t *gre0;
   gre_header_with_key_t *grek0;
   gre0 = &ip0->gre;
   grek0 = (gre_header_with_key_t *)gre0;
-  clib_warning("TX GRE44 - src: %U dst: %U flags: 0x%x key: 0x%x",
-    format_ip4_address, &ip0->ip4.src_address,
-    format_ip4_address, &ip0->ip4.dst_address,
-    clib_net_to_host_u16(grek0->flags_and_version),
-    clib_net_to_host_u32(grek0->key));
+  // end GRE headers
 
+   // Save GRE header values
+   u16 gre_flags = grek0->flags_and_version;
+   u32 gre_key = grek0->key;
+   u16 gre_proto = grek0->protocol;
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
   ip0->ip4.length =
     clib_host_to_net_u16 (vlib_buffer_length_in_chain (vm, b0));
   tunnel_encap_fixup_4o4 (flags, (ip4_header_t *) (ip0 + 1), &ip0->ip4);
+
+  // Restore GRE header values
+  grek0->flags_and_version = gre_flags;
+  grek0->key = gre_key;
+  grek0->protocol = gre_proto;
+
   ip0->ip4.checksum = ip4_header_checksum (&ip0->ip4);
+
+  //debug 2
+  clib_warning("TX GRE44 - src: %U dst: %U flags: 0x%x key: 0x%x",
+    format_ip4_address, &ip0->ip4.src_address,
+    format_ip4_address, &ip0->ip4.dst_address,
+    clib_net_to_host_u16(grek0->flags_and_version),
+    clib_net_to_host_u32(grek0->key));
 }
 
 static void
