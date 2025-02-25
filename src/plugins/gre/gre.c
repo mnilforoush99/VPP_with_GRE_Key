@@ -459,13 +459,43 @@ gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   // Clear IPv6 flow label (bits 0-19 of the first 32-bit word after version & traffic class)
   ip0->ip6.ip_version_traffic_class_and_flow_label &= 
     clib_host_to_net_u32(0xFFF00000); // Keep only version & traffic class
+  
+  // DEBUG: Check protocol value before changes
+  clib_warning("IPv6 protocol before fix: 0x%x", ip0->ip6.protocol);
+
+  // Ensure protocol is set to GRE
+  ip0->ip6.protocol = IP_PROTOCOL_GRE;
   flags = pointer_to_uword (data);
 
   /* Fixup the payload length field in the GRE tunnel encap that was applied
    * at the midchain node */
   ip0->ip6.payload_length = clib_host_to_net_u16 (
     vlib_buffer_length_in_chain (vm, b0) - sizeof (ip0->ip6));
+
+   // DEBUG: Examine GRE header
+   gre_header_t *gre = (gre_header_t *)(&ip0->gre);
+   clib_warning("GRE header - flags: 0x%x protocol: 0x%x", 
+                clib_net_to_host_u16(gre->flags_and_version),
+                clib_net_to_host_u16(gre->protocol));
+                
+   // If this is a GRE Key tunnel, check the key value
+   if (gre->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY)) {
+     gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
+     clib_warning("GRE key in packet: 0x%x", clib_net_to_host_u32(grek->key));
+   }
+   
+   // DEBUG: Print full packet structure
+   u8 *packet = vlib_buffer_get_current(b0);
+   clib_warning("IPv6 GRE packet structure (first 60 bytes):");
+   for (int i = 0; i < 60 && i < vlib_buffer_length_in_chain(vm, b0); i += 4) {
+     clib_warning("Bytes %2d-%2d: 0x%02x%02x%02x%02x", 
+                i, i+3, packet[i], packet[i+1], packet[i+2], packet[i+3]);
+   }
+
   tunnel_encap_fixup_6o6 (flags, (ip6_header_t *) (ip0 + 1), &ip0->ip6);
+
+   // DEBUG: Check protocol value after all changes
+   clib_warning("IPv6 protocol after fix: 0x%x", ip0->ip6.protocol);
 }
 
 static void
