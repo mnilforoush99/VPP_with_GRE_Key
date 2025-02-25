@@ -407,6 +407,8 @@ gre64_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
+  // Add this to prevent fragment offset corruption
+  ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
@@ -424,6 +426,8 @@ grex4_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
+  // Add this to prevent fragment offset corruption
+  ip0->ip4.flags_and_fragment_offset = 0;
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
@@ -439,6 +443,14 @@ gre46_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip6_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
+
+  // Clear IPv6 flow label to prevent corruption
+  ip0->ip6.ip_version_traffic_class_and_flow_label &= 
+    clib_host_to_net_u32(0xFFF00000); // Keep only version & traffic class
+    
+  // Ensure protocol is set to GRE
+  ip0->ip6.protocol = IP_PROTOCOL_GRE;
+
   flags = pointer_to_uword (data);
 
   /* Fixup the payload length field in the GRE tunnel encap that was applied
@@ -505,6 +517,13 @@ grex6_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip6_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
+
+ // Clear IPv6 flow label to prevent corruption
+ ip0->ip6.ip_version_traffic_class_and_flow_label &= 
+ clib_host_to_net_u32(0xFFF00000); // Keep only version & traffic class
+   
+ // Ensure protocol is set to GRE
+ ip0->ip6.protocol = IP_PROTOCOL_GRE;
 
   /* Fixup the payload length field in the GRE tunnel encap that was applied
    * at the midchain node */
