@@ -427,7 +427,7 @@ grex4_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   ip0 = vlib_buffer_get_current (b0);
   // Add this to prevent fragment offset corruption
-  ip0->ip4.flags_and_fragment_offset = 0;
+  ip0->flags_and_fragment_offset = 0;
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
