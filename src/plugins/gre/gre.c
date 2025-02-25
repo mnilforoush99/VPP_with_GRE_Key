@@ -270,8 +270,8 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       vec_validate (rewrite, sizeof (*h6) + sizeof(u32) - 1);
       h6 = (ip6_and_gre_header_t *) rewrite;
       gre = &h6->gre;
-      h6->ip6.ip_version_traffic_class_and_flow_label =
-	clib_host_to_net_u32 (6 << 28);
+      //h6->ip6.ip_version_traffic_class_and_flow_label = clib_host_to_net_u32 (6 << 28);
+      h6->ip6.ip_version_traffic_class_and_flow_label = clib_host_to_net_u32 ((6 << 28) | (0 << 20)); // Clear flow label
       h6->ip6.hop_limit = 255;
       h6->ip6.protocol = IP_PROTOCOL_GRE;
       /* fixup ip6 header length and checksum after-the-fact */
@@ -456,6 +456,9 @@ gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip6_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
+  // Clear IPv6 flow label (bits 0-19 of the first 32-bit word after version & traffic class)
+  ip0->ip6.ip_version_traffic_class_and_flow_label &= 
+    clib_host_to_net_u32(0xFFF00000); // Keep only version & traffic class
   flags = pointer_to_uword (data);
 
   /* Fixup the payload length field in the GRE tunnel encap that was applied
