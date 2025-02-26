@@ -399,9 +399,9 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
 
   pool_get_aligned (gm->tunnels, t, CLIB_CACHE_LINE_BYTES);
   clib_memset (t, 0, sizeof (*t));
-  // added for GRE Key
+  // added for GRE Key - only mark as present if key is non-zero
   t->gre_key = a->gre_key;
-  t->key_present = a->key_present;
+  t->key_present = (a->gre_key != 0);  // Changed: only set key_present if key is non-zero
 
   /* Reconcile the real dev_instance and a possible requested instance */
   u32 t_idx = t - gm->tunnels; /* tunnel index (or instance) */
