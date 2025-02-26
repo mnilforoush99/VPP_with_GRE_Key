@@ -284,13 +284,13 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
   gre->flags_and_version = 0;  // Clear flags first
   gre->protocol = clib_host_to_net_u16(gre_proto_from_vnet_link(link_type));
 
-  //if (t->key_present) 
-  //{
-  //  if (t->gre_key == 0)  // Invalid key check
-  //  {
-  //    clib_warning("Invalid GRE key: 0 for tunnel %d", ti);
-  //    return 0;  // Drop the rewrite attempt
-  //  }
+  if (t->key_present) 
+  {
+    //if (t->gre_key == 0)  // Invalid key check
+    //{
+    //  clib_warning("Invalid GRE key: 0 for tunnel %d", ti);
+    //  return 0;  // Drop the rewrite attempt
+    //}
     
     //gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
     //
