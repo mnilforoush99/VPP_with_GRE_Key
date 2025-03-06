@@ -244,7 +244,7 @@
    }
  
      // GRE key processing here
-     u32 gre_key[2] = {0, 0};
+     gre_key_t gre_key[2] = {0, 0};
      if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
      {
          gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[0];
@@ -252,7 +252,7 @@
          //debug
          clib_warning("Extracted GRE key[0]: %u", gre_key[0]);
          //vlib_buffer_advance(b[0], sizeof(u32));
-         clib_warning("Buffer[0] advanced by %u bytes", sizeof(u32)); //debug
+         clib_warning("Buffer[0] advanced by %u bytes", sizeof(gre_key_t)); //debug
      }
      if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
      {
@@ -261,7 +261,7 @@
          //debug
          clib_warning("Extracted GRE key[1]: %u", gre_key[1]);
          //vlib_buffer_advance(b[1], sizeof(u32));
-         clib_warning("Buffer[1] advanced by %u bytes", sizeof(u32));  //debug
+         clib_warning("Buffer[1] advanced by %u bytes", sizeof(gre_key_t));  //debug
      }
  
  
@@ -433,7 +433,7 @@
    }
  
        // GRE key processing here
-       u32 gre_key = 0;
+       gre_key_t gre_key = 0;
        if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
        {
            gre_header_with_key_t *grek = (gre_header_with_key_t *)gre[0];
