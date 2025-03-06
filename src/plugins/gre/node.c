@@ -209,9 +209,9 @@
      u16 gre_hdr_size0 = sizeof(*gre[0]);
      u16 gre_hdr_size1 = sizeof(*gre[1]);
      if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
-         gre_hdr_size0 += sizeof(u32);
+         gre_hdr_size0 += sizeof(gre_key_t);
      if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
-         gre_hdr_size1 += sizeof(u32);
+         gre_hdr_size1 += sizeof(gre_key_t);
      
     // Single buffer advance for each packet
      vlib_buffer_advance (b[0], sizeof (*ip6[0]) + gre_hdr_size0);
@@ -234,9 +234,9 @@
      u16 gre_hdr_size0 = sizeof(*gre[0]);
      u16 gre_hdr_size1 = sizeof(*gre[1]);
      if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
-         gre_hdr_size0 += sizeof(u32);
+         gre_hdr_size0 += sizeof(gre_key_t);
      if (gre[1]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
-         gre_hdr_size1 += sizeof(u32);
+         gre_hdr_size1 += sizeof(gre_key_t);
      
      // Single buffer advance for each packet
      vlib_buffer_advance (b[0], sizeof (*ip4[0]) + gre_hdr_size0);
@@ -413,7 +413,7 @@
      // Calculate total header size
      u16 gre_hdr_size = sizeof(*gre[0]);
      if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
-         gre_hdr_size += sizeof(u32);
+         gre_hdr_size += sizeof(gre_key_t);
      // Single buffer advance
 	   vlib_buffer_advance (b[0], sizeof (*ip6[0]) + gre_hdr_size);
    }
@@ -427,7 +427,7 @@
      // Calculate total header size
      u16 gre_hdr_size = sizeof(*gre[0]);
      if (gre[0]->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
-         gre_hdr_size += sizeof(u32);
+         gre_hdr_size += sizeof(gre_key_t);
      // Single buffer advance
      vlib_buffer_advance (b[0], sizeof (*ip4[0]) + gre_hdr_size);
    }
@@ -442,7 +442,7 @@
            clib_warning("Extracted GRE key: %u", gre_key);
            //vlib_buffer_advance(b[0], sizeof(u32));
            //debug
-           clib_warning("Buffer advanced by %u bytes", sizeof(u32));
+           clib_warning("Buffer advanced by %u bytes", sizeof(gre_key_t));
        }
  
        if (PREDICT_TRUE (cached_protocol == gre[0]->protocol))

@@ -234,7 +234,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     {
       //vec_validate (rewrite, sizeof (*h4) - 1);
       // Allocate space for maximum header size including key
-      vec_validate (rewrite, sizeof (*h4) + sizeof(u32) - 1);
+      vec_validate (rewrite, sizeof (*h4) + sizeof(gre_key_t) - 1);
       h4 = (ip4_and_gre_header_t *) rewrite;
       gre = &h4->gre;
       //debug 3
@@ -267,7 +267,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     {
       //vec_validate (rewrite, sizeof (*h6) - 1);
       // Similar changes for IPv6
-      vec_validate (rewrite, sizeof (*h6) + sizeof(u32) - 1);
+      vec_validate (rewrite, sizeof (*h6) + sizeof(gre_key_t) - 1);
       h6 = (ip6_and_gre_header_t *) rewrite;
       gre = &h6->gre;
       //h6->ip6.ip_version_traffic_class_and_flow_label = clib_host_to_net_u32 (6 << 28);
