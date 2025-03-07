@@ -65,19 +65,30 @@ typedef struct {
 } gre_header_with_key_t;
 
 always_inline u32
-gre_get_key (gre_header_t *h)
+gre_get_key (const gre_header_t *h)
 {
   if (h->flags_and_version & clib_host_to_net_u16(GRE_FLAGS_KEY))
-    return clib_net_to_host_u32(((gre_header_with_key_t*)h)->key);
+    return clib_net_to_host_u32(((const gre_header_with_key_t*)h)->key);
   return 0;
 }
 
 always_inline void
-gre_set_key (gre_header_with_key_t *h, u32 key)
+gre_set_key (gre_header_t *h, u32 key)
 {
-  h->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
-  h->key = clib_host_to_net_u32(key);
+  if (gre_key_is_valid(key)) {
+    h->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
+    ((gre_header_with_key_t*)h)->key = clib_host_to_net_u32(key);
+  } else {
+    h->flags_and_version &= ~clib_host_to_net_u16(GRE_FLAGS_KEY);
+  }
 }
+
+//always_inline void
+//gre_set_key (gre_header_with_key_t *h, u32 key)
+//{
+//  h->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
+//  h->key = clib_host_to_net_u32(key);
+//}
 /* From draft-foschiano-erspan-03.txt
 
    Different frame variants known as "ERSPAN Types" can be
