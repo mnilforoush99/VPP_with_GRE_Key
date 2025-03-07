@@ -65,8 +65,17 @@ typedef enum gre_tunnel_type_t_
  */
 typedef u32 gre_key_t;
 
+/**
+ * @brief Check if a GRE key is valid (non-zero)
+ */
+#define gre_key_is_valid(_key) ((_key) != 0)
+
 extern u8 *format_gre_tunnel_type (u8 * s, va_list * args);
 
+/**
+* @brief Format a GRE key for display
+*/
+format_function_t format_gre_key;
 
 /**
  * A GRE payload protocol registration
@@ -256,9 +265,8 @@ typedef struct
   gre_tunnel_type_t type;
   tunnel_mode_t mode;
 
-  /* Add GRE key */
+  /* GRE key */
   gre_key_t gre_key;
-  u8 key_present;    /* Flag to indicate if key is used */
 
   tunnel_encap_decap_flags_t flags;
 
@@ -423,7 +431,6 @@ typedef struct
   u32 outer_table_id;
   u16 session_id;
   gre_key_t gre_key;
-  u8 key_present;       /* Flag to indicate if key should be used */
   tunnel_encap_decap_flags_t flags;
 } vnet_gre_tunnel_add_del_args_t;
 

@@ -252,8 +252,9 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 
       // Set total IP length including GRE header and key if present
       u16 total_length = sizeof(ip4_header_t) + sizeof(gre_header_t);
-      if (t->key_present)
-          total_length += sizeof(u32);
+      if (gre_key_is_valid(t->gre_key))
+          //total_length += sizeof(u32);
+          total_length += sizeof(gre_key_t);
       h4->ip4.length = clib_host_to_net_u16(total_length);
 
       h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
@@ -284,14 +285,8 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
   gre->flags_and_version = 0;  // Clear flags first
   gre->protocol = clib_host_to_net_u16(gre_proto_from_vnet_link(link_type));
 
-  if (t->key_present) 
-  {
-    //if (t->gre_key == 0)  // Invalid key check
-    //{
-    //  clib_warning("Invalid GRE key: 0 for tunnel %d", ti);
-    //  return 0;  // Drop the rewrite attempt
-    //}
-    
+  if (gre_key_is_valid(t->gre_key))
+  {    
     //gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
     //
     ///* Adjust rewrite size */
@@ -868,8 +863,6 @@ format_gre_tunnel_name (u8 *s, va_list *args)
 
   t = pool_elt_at_index (gm->tunnels, dev_instance);
   s = format (s, "gre%d", t->user_instance);
-  //if (t->key_present)
-    //s = format (s, " key %u", t->gre_key);
   return s;
 }
 
