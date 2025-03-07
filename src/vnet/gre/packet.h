@@ -75,7 +75,7 @@ gre_get_key (const gre_header_t *h)
 always_inline void
 gre_set_key (gre_header_t *h, u32 key)
 {
-  if (gre_key_is_valid(key)) {
+  if (key != 0) {
     h->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
     ((gre_header_with_key_t*)h)->key = clib_host_to_net_u32(key);
   } else {
