@@ -73,7 +73,7 @@ format_gre_tunnel (u8 *s, va_list *args)
   s = format (s, "%U ", format_tunnel_mode, t->mode);
 
   if (gre_key_is_valid(t->gre_key))
-    s = format (s, "key %u ", format_gre_key, t->gre_key);
+    s = format (s, "key %U ", format_gre_key, t->gre_key);
   
   if (t->type == GRE_TUNNEL_TYPE_ERSPAN)
     s = format (s, "session %d ", t->session_id);
