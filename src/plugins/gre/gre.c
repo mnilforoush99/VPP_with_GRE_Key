@@ -243,7 +243,8 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       clib_warning("GRE header offset: %d", (u8*)gre - rewrite);
 
       h4->ip4.ip_version_and_header_length = 0x45;
-      h4->ip4.flags_and_fragment_offset = 0; //to prevent fragment offset field from being corrupted by GRE Key
+      /* Initialize to prevent fragment offset field from being corrupted by GRE Key, but also needs to be reset in fixup functions */
+      h4->ip4.flags_and_fragment_offset = 0;
       h4->ip4.ttl = 254;
       h4->ip4.protocol = IP_PROTOCOL_GRE;
       /* fixup ip4 header length and checksum after-the-fact */
@@ -338,7 +339,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
-  // Clear fragment offset
+   /* Must reset this here as it gets corrupted during packet processing */
   ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
@@ -402,7 +403,7 @@ gre64_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
-  // Add this to prevent fragment offset corruption
+  /* Must reset this here as it gets corrupted during packet processing */
   ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
@@ -421,7 +422,7 @@ grex4_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
-  // Add this to prevent fragment offset corruption
+  /* Must reset this here as it gets corrupted during packet processing */
   ip0->flags_and_fragment_offset = 0;
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
