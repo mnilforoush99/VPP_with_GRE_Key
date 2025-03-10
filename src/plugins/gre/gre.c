@@ -232,8 +232,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 
   if (!is_ipv6)
     {
-      //vec_validate (rewrite, sizeof (*h4) - 1);
-      // Allocate space for maximum header size including key
+      /* Allocate space for maximum header size including key */
       vec_validate (rewrite, sizeof (*h4) + sizeof(gre_key_t) - 1);
       h4 = (ip4_and_gre_header_t *) rewrite;
       gre = &h4->gre;
@@ -251,13 +250,11 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
       h4->ip4.dst_address.as_u32 = dst->ip4.as_u32;
 
-      // Set total IP length including GRE header and key if present
-      u16 total_length = sizeof(ip4_header_t) + sizeof(gre_header_t);
-      if (gre_key_is_valid(t->gre_key))
-          //total_length += sizeof(u32);
-          total_length += sizeof(gre_key_t);
-      h4->ip4.length = clib_host_to_net_u16(total_length);
-
+      /* Set total IP length including GRE header and key if present */
+      //u16 total_length = sizeof(ip4_header_t) + sizeof(gre_header_t);
+      //if (gre_key_is_valid(t->gre_key))
+      //    total_length += sizeof(gre_key_t);
+      //h4->ip4.length = clib_host_to_net_u16(total_length);
       h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
       //debug 1
       clib_warning("Outbound GRE - src: %U dst: %U key: %d",
@@ -267,12 +264,10 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     }
   else
     {
-      //vec_validate (rewrite, sizeof (*h6) - 1);
-      // Similar changes for IPv6
+      /* Allocate space for maximum header size including key */
       vec_validate (rewrite, sizeof (*h6) + sizeof(gre_key_t) - 1);
       h6 = (ip6_and_gre_header_t *) rewrite;
       gre = &h6->gre;
-      //h6->ip6.ip_version_traffic_class_and_flow_label = clib_host_to_net_u32 (6 << 28);
       h6->ip6.ip_version_traffic_class_and_flow_label = clib_host_to_net_u32 ((6 << 28) | (0 << 20)); // Clear flow label
       h6->ip6.hop_limit = 255;
       h6->ip6.protocol = IP_PROTOCOL_GRE;
@@ -405,8 +400,6 @@ grex4_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
-  /* Must reset this here as it gets corrupted during packet processing */
-  ip0->flags_and_fragment_offset = 0;
 
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
