@@ -444,7 +444,7 @@ gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   clib_warning("IPv6 protocol before fix: 0x%x", ip0->ip6.protocol);
 
   // Ensure protocol is set to GRE
-  ip0->ip6.protocol = IP_PROTOCOL_GRE;
+  //ip0->ip6.protocol = IP_PROTOCOL_GRE;
   flags = pointer_to_uword (data);
 
   /* Fixup the payload length field in the GRE tunnel encap that was applied
