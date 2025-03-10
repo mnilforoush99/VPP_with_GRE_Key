@@ -282,37 +282,6 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h6->ip6.dst_address.as_u64[0] = dst->ip6.as_u64[0];
       h6->ip6.dst_address.as_u64[1] = dst->ip6.as_u64[1];
     }
-  // Set GRE header fields
-  gre->flags_and_version = 0;  // Clear flags first
-  gre->protocol = clib_host_to_net_u16(gre_proto_from_vnet_link(link_type));
-
-  if (gre_key_is_valid(t->gre_key))
-  {    
-    //gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
-    //
-    ///* Adjust rewrite size */
-    //if (!is_ipv6)
-    //  vec_validate(rewrite, sizeof(*h4) + sizeof(u32) - 1);
-    //else
-    //  vec_validate(rewrite, sizeof(*h6) + sizeof(u32) - 1);
-    ///* Add key after GRE header */
-    //u32 *key = (u32 *)(gre + 1);
-    //*key = clib_host_to_net_u32(t->gre_key);
-
-   // gre->flags_and_version |= clib_host_to_net_u16(GRE_FLAGS_KEY);
-   // u32 *key = (u32 *)(gre + 1);
-   // *key = clib_host_to_net_u32(t->gre_key);
-
-    gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
-    grek->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
-    grek->key = clib_host_to_net_u32(t->gre_key);
-    //debug 4
-    clib_warning("Rewrite GRE - flags: 0x%x key: 0x%x",
-      clib_net_to_host_u16(grek->flags_and_version),
-      clib_net_to_host_u32(grek->key));
-    clib_warning("Setting GRE key: 0x%x", t->gre_key);
-
-  }
 
   if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
     {
@@ -320,9 +289,23 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       gre->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
     }
   else
+  {
     gre->protocol =
       clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
-
+    gre->flags_and_version = 0;  // Clear flags first
+    if (gre_key_is_valid(t->gre_key))
+    {
+      gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
+      grek->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
+      grek->key = clib_host_to_net_u32(t->gre_key);
+      //debug 4
+      clib_warning("Rewrite GRE - flags: 0x%x key: 0x%x",
+        clib_net_to_host_u16(grek->flags_and_version),
+        clib_net_to_host_u32(grek->key));
+      clib_warning("Setting GRE key: 0x%x", t->gre_key);
+  
+    }
+  }
   return (rewrite);
 }
 
@@ -343,7 +326,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
-  //access GRE headers
+  //access GRE headers for debug purposes
   gre_header_t *gre0;
   gre_header_with_key_t *grek0;
   u16 gre_flags;
@@ -355,7 +338,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   grek0 = (gre_header_with_key_t *)gre0;
   // end GRE headers
 
-   // Save GRE header values
+   // Save GRE header values for debug purposes
    gre_flags = grek0->flags_and_version;
    gre_key = grek0->key;
    gre_proto = grek0->protocol;
@@ -366,7 +349,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     clib_host_to_net_u16 (vlib_buffer_length_in_chain (vm, b0));
   tunnel_encap_fixup_4o4 (flags, (ip4_header_t *) (ip0 + 1), &ip0->ip4);
 
-  // Restore GRE header values
+  // Restore GRE header values for debug purposes
   grek0->flags_and_version = gre_flags;
   grek0->key = gre_key;
   grek0->protocol = gre_proto;
@@ -386,7 +369,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     clib_net_to_host_u16(grek0->flags_and_version),
     clib_net_to_host_u32(grek0->key));
 
-  // Add packet data inspection here
+  // Add packet data inspection here for debug purposes
   packet_data = vlib_buffer_get_current(b0);
   clib_warning("Packet data before transmission:");
   for (i = 0; i < 32; i++) {
