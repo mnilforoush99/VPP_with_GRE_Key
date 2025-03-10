@@ -282,6 +282,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     gre->protocol =
       clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
     gre->flags_and_version = 0;  // Clear flags first
+    /* Add key only for non-ERSPAN tunnels */
     if (gre_key_is_valid(t->gre_key))
     {
       gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
@@ -311,11 +312,11 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip4_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
-   /* Must reset this here as it gets corrupted during packet processing */
-  //ip0->ip4.flags_and_fragment_offset = 0;
+  /* Must reset this here as it gets corrupted during packet processing */
+  ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
-  //access GRE headers for debug purposes
+  // Access GRE headers for debug purposes
   gre_header_t *gre0;
   gre_header_with_key_t *grek0;
   u16 gre_flags;
