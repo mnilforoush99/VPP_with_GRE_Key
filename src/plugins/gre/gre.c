@@ -249,12 +249,6 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       /* fixup ip4 header length and checksum after-the-fact */
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
       h4->ip4.dst_address.as_u32 = dst->ip4.as_u32;
-
-      /* Set total IP length including GRE header and key if present */
-      //u16 total_length = sizeof(ip4_header_t) + sizeof(gre_header_t);
-      //if (gre_key_is_valid(t->gre_key))
-      //    total_length += sizeof(gre_key_t);
-      //h4->ip4.length = clib_host_to_net_u16(total_length);
       h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
       //debug 1
       clib_warning("Outbound GRE - src: %U dst: %U key: %d",
@@ -318,7 +312,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   ip0 = vlib_buffer_get_current (b0);
    /* Must reset this here as it gets corrupted during packet processing */
-  ip0->ip4.flags_and_fragment_offset = 0;
+  //ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
   //access GRE headers for debug purposes
