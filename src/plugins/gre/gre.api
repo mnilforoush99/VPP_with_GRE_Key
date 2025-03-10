@@ -58,7 +58,7 @@ typedef gre_tunnel
 
 typedef gre_tunnel_v2
 {
-  option in_progress;
+  option status="in_progress";
   vl_api_gre_tunnel_type_t type;
   vl_api_tunnel_mode_t mode;
   vl_api_tunnel_encap_decap_flags_t flags;
