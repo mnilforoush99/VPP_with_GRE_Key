@@ -51,8 +51,8 @@ u8 *
 format_gre_key (u8 *s, va_list *args)
 {
   gre_key_t key = va_arg (*args, gre_key_t);
-  
-  if (!gre_key_is_valid(key))
+
+  if (!gre_key_is_valid (key))
     return format (s, "INVALID");
   else
     return format (s, "%u", key);
@@ -72,9 +72,9 @@ format_gre_tunnel (u8 *s, va_list *args)
   s = format (s, "payload %U ", format_gre_tunnel_type, t->type);
   s = format (s, "%U ", format_tunnel_mode, t->mode);
 
-  if (gre_key_is_valid(t->gre_key))
+  if (gre_key_is_valid (t->gre_key))
     s = format (s, "key %U ", format_gre_key, t->gre_key);
-  
+
   if (t->type == GRE_TUNNEL_TYPE_ERSPAN)
     s = format (s, "session %d ", t->session_id);
 
@@ -93,24 +93,26 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
 
   if (!a->is_ipv6)
     {
-      //debug 1
-      clib_warning("GRE tunnel configuration - src: %U dst: %U key: %d",
-        format_ip4_address, &a->src.ip4,
-        format_ip4_address, &a->dst.ip4,
-        a->gre_key);
+      // debug 1
+      clib_warning ("GRE tunnel configuration - src: %U dst: %U key: %d",
+		    format_ip4_address, &a->src.ip4, format_ip4_address,
+		    &a->dst.ip4, a->gre_key);
       gre_mk_key4 (a->src.ip4, a->dst.ip4, outer_fib_index, a->type, a->mode,
 		   a->session_id, a->gre_key, &key->gtk_v4);
-       //debug 2
-      clib_warning("Created key structure:");
-      clib_warning("  gtk_src: %U", format_ip4_address, &key->gtk_v4.gtk_src);
-      clib_warning("  gtk_dst: %U", format_ip4_address, &key->gtk_v4.gtk_dst);
-      clib_warning("  fib_index: %d", key->gtk_v4.gtk_common.fib_index);
-      clib_warning("  gre_key: %d", key->gtk_v4.gtk_common.gre_key);
-      clib_warning("  type: %d", key->gtk_v4.gtk_common.type);
-      clib_warning("  mode: %d", key->gtk_v4.gtk_common.mode);
-      //debug 3
-      clib_warning("Storage key memory: %U", format_hex_bytes, &key->gtk_v4, sizeof(gre_tunnel_key4_t));
-      clib_warning("Storage hash value: %u", hash_memory((void *)&key->gtk_v4, sizeof(gre_tunnel_key4_t), 0));
+      // debug 2
+      clib_warning ("Created key structure:");
+      clib_warning ("  gtk_src: %U", format_ip4_address, &key->gtk_v4.gtk_src);
+      clib_warning ("  gtk_dst: %U", format_ip4_address, &key->gtk_v4.gtk_dst);
+      clib_warning ("  fib_index: %d", key->gtk_v4.gtk_common.fib_index);
+      clib_warning ("  gre_key: %d", key->gtk_v4.gtk_common.gre_key);
+      clib_warning ("  type: %d", key->gtk_v4.gtk_common.type);
+      clib_warning ("  mode: %d", key->gtk_v4.gtk_common.mode);
+      // debug 3
+      clib_warning ("Storage key memory: %U", format_hex_bytes, &key->gtk_v4,
+		    sizeof (gre_tunnel_key4_t));
+      clib_warning (
+	"Storage hash value: %u",
+	hash_memory ((void *) &key->gtk_v4, sizeof (gre_tunnel_key4_t), 0));
       p = hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
     }
   else
@@ -187,11 +189,12 @@ gre_tunnel_stack (adj_index_t ai)
   else
     {
       adj_midchain_delegate_stack (ai, gt->outer_fib_index, &gt->tunnel_dst);
-      if (gre_key_is_valid(gt->gre_key))
-        {
-           gre_header_with_key_t *h = (gre_header_with_key_t *)adj->rewrite_data;
-           h->key = clib_host_to_net_u32(gt->gre_key);
-        }
+      if (gre_key_is_valid (gt->gre_key))
+	{
+	  gre_header_with_key_t *h =
+	    (gre_header_with_key_t *) adj->rewrite_data;
+	  h->key = clib_host_to_net_u32 (gt->gre_key);
+	}
     }
 }
 
@@ -405,7 +408,6 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   u32 hw_if_index, sw_if_index;
   u8 is_ipv6 = a->is_ipv6;
   gre_tunnel_key_t key;
-  
 
   t = gre_tunnel_db_find (a, outer_fib_index, &key);
   if (NULL != t)
@@ -688,7 +690,7 @@ create_gre_tunnel_command_fn (vlib_main_t *vm, unformat_input_t *input,
   u8 is_add = 1;
   u32 sw_if_index;
   clib_error_t *error = NULL;
-  u32 key = 0;  // added GRE key
+  u32 key = 0; // added GRE key
   /* Get a line of input. */
   if (!unformat_user (input, unformat_line_input, line_input))
     return 0;
@@ -801,7 +803,8 @@ VLIB_CLI_COMMAND (create_gre_tunnel_command, static) = {
   .path = "create gre tunnel",
   .short_help = "create gre tunnel src <addr> dst <addr> [instance <n>] "
 		"[outer-fib-id <fib>] [teb | erspan <session-id>] [del] "
-		"[multipoint]" "[key <value>]",
+		"[multipoint]"
+		"[key <value>]",
   .function = create_gre_tunnel_command_fn,
 };
 
