@@ -22,6 +22,11 @@
 #include <vpp/app/version.h>
 #include <vnet/plugin/plugin.h>
 
+
+extern gre_main_t gre_main;
+
+#ifndef CLIB_MARCH_VARIANT
+
 static void
 gre_dump_packet_hex(const char *desc, const u8 *pkt, u32 len)
 {
@@ -41,10 +46,6 @@ gre_dump_packet_hex(const char *desc, const u8 *pkt, u32 len)
   }
 }
 
-
-extern gre_main_t gre_main;
-
-#ifndef CLIB_MARCH_VARIANT
 gre_main_t gre_main;
 
 typedef struct
