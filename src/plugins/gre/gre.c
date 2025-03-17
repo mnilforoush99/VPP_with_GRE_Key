@@ -310,7 +310,10 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
   else
     {
       /* Allocate space for maximum header size including key */
-      vec_validate (rewrite, sizeof (*h6) + sizeof (gre_key_t) - 1);
+      if (gre_key_is_valid(t->gre_key))
+        vec_validate (rewrite, sizeof (*h6) + sizeof (gre_key_t) - 1);
+      else
+        vec_validate (rewrite, sizeof (*h6) - 1);
       h6 = (ip6_and_gre_header_t *) rewrite;
       gre = &h6->gre;
       h6->ip6.ip_version_traffic_class_and_flow_label =
