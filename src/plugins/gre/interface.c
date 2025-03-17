@@ -132,14 +132,46 @@ static void
 gre_tunnel_db_add (gre_tunnel_t *t, gre_tunnel_key_t *key)
 {
   gre_main_t *gm = &gre_main;
+  // Add debug at beginning
+  clib_warning("gre_tunnel_db_add - tunnel sw_if_index: %d, key has gre_key: 0x%x",
+    t->sw_if_index,
+    t->tunnel_dst.fp_proto == FIB_PROTOCOL_IP6 ? 
+    key->gtk_v6.gtk_common.gre_key : key->gtk_v4.gtk_common.gre_key);
 
   if (t->tunnel_dst.fp_proto == FIB_PROTOCOL_IP6)
     {
+          // Debug IPv6 key
+    clib_warning("IPv6 key - src: %U, dst: %U, fib: %d, type: %d, mode: %d, key: 0x%x",
+      format_ip6_address, &key->gtk_v6.gtk_src,
+      format_ip6_address, &key->gtk_v6.gtk_dst,
+      key->gtk_v6.gtk_common.fib_index,
+      key->gtk_v6.gtk_common.type,
+      key->gtk_v6.gtk_common.mode,
+      key->gtk_v6.gtk_common.gre_key);
+
       hash_set_mem_alloc (&gm->tunnel_by_key6, &key->gtk_v6, t->dev_instance);
+
+      // Debug after hash addition
+    clib_warning("Added IPv6 tunnel to hash - instance: %d", t->dev_instance);
     }
   else
     {
+      // Debug IPv4 key
+    clib_warning("IPv4 key - src: %U, dst: %U, fib: %d, type: %d, mode: %d, key: 0x%x",
+      format_ip4_address, &key->gtk_v4.gtk_src,
+      format_ip4_address, &key->gtk_v4.gtk_dst,
+      key->gtk_v4.gtk_common.fib_index,
+      key->gtk_v4.gtk_common.type,
+      key->gtk_v4.gtk_common.mode,
+      key->gtk_v4.gtk_common.gre_key);
+
+      // Debug hash key memory
+    clib_warning("IPv4 key memory: %U",
+      format_hex_bytes, &key->gtk_v4, sizeof(gre_tunnel_key4_t));
+
       hash_set_mem_alloc (&gm->tunnel_by_key4, &key->gtk_v4, t->dev_instance);
+      // Debug after hash addition
+    clib_warning("Added IPv4 tunnel to hash - instance: %d", t->dev_instance);
     }
 }
 
@@ -409,14 +441,25 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   u8 is_ipv6 = a->is_ipv6;
   gre_tunnel_key_t key;
 
+  // Add debug immediately at the start of the function
+  clib_warning("GRE tunnel add - is_ipv6: %d, type: %d, mode: %d, gre_key: 0x%x",
+    a->is_ipv6, a->type, a->mode, a->gre_key);
+
   t = gre_tunnel_db_find (a, outer_fib_index, &key);
   if (NULL != t)
     return VNET_API_ERROR_IF_ALREADY_EXISTS;
+  
+  // Debug after database find
+  clib_warning("GRE tunnel not found in database, creating new tunnel");
 
   pool_get_aligned (gm->tunnels, t, CLIB_CACHE_LINE_BYTES);
   clib_memset (t, 0, sizeof (*t));
   // added for GRE Key - only mark as present if key is non-zero
   t->gre_key = a->gre_key;
+
+  // Add debug after setting key
+  clib_warning("Set GRE tunnel key: 0x%x, is_valid: %d", 
+    t->gre_key, gre_key_is_valid(t->gre_key));
 
   /* Reconcile the real dev_instance and a possible requested instance */
   u32 t_idx = t - gm->tunnels; /* tunnel index (or instance) */
@@ -441,10 +484,12 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
 
   if (t->type == GRE_TUNNEL_TYPE_L3)
     {
-      if (t->mode == TUNNEL_MODE_P2P)
+      if (t->mode == TUNNEL_MODE_P2P) {
 	hw_if_index =
 	  vnet_register_interface (vnm, gre_device_class.index, t_idx,
 				   gre_hw_interface_class.index, t_idx);
+  clib_warning("GRE interface created - hw_if_index: %d", hw_if_index);
+      }
       else
 	hw_if_index =
 	  vnet_register_interface (vnm, gre_device_class.index, t_idx,
@@ -476,6 +521,9 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   hi = vnet_get_hw_interface (vnm, hw_if_index);
   sw_if_index = hi->sw_if_index;
 
+  // Debug interface parameters
+  clib_warning("GRE interface - sw_if_index: %d", sw_if_index);
+
   t->hw_if_index = hw_if_index;
   t->outer_fib_index = outer_fib_index;
   t->sw_if_index = sw_if_index;
@@ -487,11 +535,23 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   if (!is_ipv6)
     {
       hi->frame_overhead = sizeof (gre_header_t) + sizeof (ip4_header_t);
+      //debug
+      clib_warning("IPv4 frame overhead: %d bytes, with key?: %d, key size: %d bytes",
+        hi->frame_overhead, 
+        gre_key_is_valid(t->gre_key),
+        gre_key_is_valid(t->gre_key) ? sizeof(gre_key_t) : 0);
+      
       hi->min_frame_size = hi->frame_overhead + 64;
     }
   else
     {
       hi->frame_overhead = sizeof (gre_header_t) + sizeof (ip6_header_t);
+      //debug
+      clib_warning("IPv6 frame overhead: %d bytes, with key?: %d, key size: %d bytes",
+        hi->frame_overhead,
+        gre_key_is_valid(t->gre_key),
+        gre_key_is_valid(t->gre_key) ? sizeof(gre_key_t) : 0);
+
       hi->min_frame_size = hi->frame_overhead + 64;
     }
 
@@ -510,6 +570,9 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   t->tunnel_dst.fp_proto = !is_ipv6 ? FIB_PROTOCOL_IP4 : FIB_PROTOCOL_IP6;
   t->tunnel_dst.fp_addr = a->dst;
 
+   // Add debug for tunnel database addition
+   clib_warning("Adding tunnel to database - key is IPv6: %d", is_ipv6);
+  
   gre_tunnel_db_add (t, &key);
 
   if (t->mode == TUNNEL_MODE_MP)
@@ -550,6 +613,9 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
       vnet_set_interface_l3_output_node (gm->vlib_main, sw_if_index,
 					 (u8 *) "tunnel-output");
     }
+  // Final debug before return
+  clib_warning("GRE tunnel created successfully - sw_if_index: %d", sw_if_index);
+
   if (sw_if_indexp)
     *sw_if_indexp = sw_if_index;
 
