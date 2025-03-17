@@ -360,6 +360,11 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   ip0 = vlib_buffer_get_current (b0);
 
+  // Dump packet before fixup
+  u8 *pkt_before = vlib_buffer_get_current(b0);
+  u32 len_before = vlib_buffer_length_in_chain(vm, b0);
+  gre_dump_packet_hex("IPv4+GRE before fixup", pkt_before, len_before);
+
   //debug
   clib_warning("IPv4+GRE header before fixup - src: %U dst: %U protocol: %d length: %d",
     format_ip4_address, &ip0->ip4.src_address,
@@ -398,6 +403,18 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   ip0->ip4.length =
     clib_host_to_net_u16 (vlib_buffer_length_in_chain (vm, b0));
   tunnel_encap_fixup_4o4 (flags, (ip4_header_t *) (ip0 + 1), &ip0->ip4);
+
+   // Dump packet after fixup
+   u8 *pkt_after = vlib_buffer_get_current(b0);
+   u32 len_after = vlib_buffer_length_in_chain(vm, b0);
+   gre_dump_packet_hex("IPv4+GRE after fixup", pkt_after, len_after);
+
+     // Debug the GRE header specifically
+  gre_header_t *gre = &ip0->gre;
+  clib_warning("GRE header - flags: 0x%x, protocol: 0x%x", 
+               clib_net_to_host_u16(gre->flags_and_version),
+               clib_net_to_host_u16(gre->protocol));
+   
 
   // Restore GRE header values for debug purposes
   grek0->flags_and_version = gre_flags;
