@@ -144,6 +144,19 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
     // Also print the raw key memory
     clib_warning("IPv6 lookup key memory: %U",
                 format_hex_bytes, &key->gtk_v6, sizeof(gre_tunnel_key6_t));
+    clib_warning("Hash value: %u", 
+                  hash_memory(&key->gtk_v6, sizeof(gre_tunnel_key6_t), 0));
+      // Compare with the hash table
+    u32 *val_vec = NULL;
+    hash_foreach_mem(kv, v, gm->tunnel_by_key6, 
+    ({
+      if (v == 0) continue;  // Skip empty entries
+      vec_add1(val_vec, v);
+      clib_warning("Existing entry hash val: %u", 
+                   hash_memory(kv, sizeof(gre_tunnel_key6_t), 0));
+    }));
+    clib_warning("Total IPv6 tunnels in hash: %d", vec_len(val_vec));
+    vec_free(val_vec);
   }
 
   const uword *p;

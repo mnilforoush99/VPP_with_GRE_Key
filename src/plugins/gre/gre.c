@@ -553,8 +553,8 @@ gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   
   //debug
   clib_warning("IPv6+GRE header before fixup - src: %U dst: %U protocol: %d length: %d",
-    format_ip4_address, &ip0->ip6.src_address,
-    format_ip4_address, &ip0->ip6.dst_address,
+    format_ip6_address, &ip0->ip6.src_address,
+    format_ip6_address, &ip0->ip6.dst_address,
     ip0->ip6.protocol,
     clib_net_to_host_u16(ip0->ip6.payload_length));
 

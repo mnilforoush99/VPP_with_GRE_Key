@@ -124,6 +124,27 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
 
       gre_mk_key6 (&a->src.ip6, &a->dst.ip6, outer_fib_index, a->type, a->mode,
 		   a->session_id, a->gre_key, &key->gtk_v6);
+
+      //debug
+      if (t->tunnel_dst.fp_proto == FIB_PROTOCOL_IP6) {
+        clib_warning("IPv6 key struct size: %d", sizeof(gre_tunnel_key6_t));
+        clib_warning("IPv6 key alignment: %d", __alignof__(gre_tunnel_key6_t));
+        
+        // Print the raw memory
+        u8 *key_memory = (u8*)&key->gtk_v6;
+        for (int i = 0; i < sizeof(gre_tunnel_key6_t); i += 8) {
+          clib_warning("  bytes %2d-%2d: %02x %02x %02x %02x %02x %02x %02x %02x",
+                      i, i+7,
+                      (i < sizeof(gre_tunnel_key6_t)) ? key_memory[i] : 0,
+                      (i+1 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+1] : 0,
+                      (i+2 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+2] : 0,
+                      (i+3 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+3] : 0,
+                      (i+4 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+4] : 0,
+                      (i+5 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+5] : 0,
+                      (i+6 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+6] : 0,
+                      (i+7 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+7] : 0);
+        }
+      }      
       
       // debug 2 for IPv6
     clib_warning("Created IPv6 key structure:");
@@ -178,7 +199,14 @@ gre_tunnel_db_add (gre_tunnel_t *t, gre_tunnel_key_t *key)
 
       // Debug after hash addition
     clib_warning("Added IPv6 tunnel to hash - instance: %d", t->dev_instance);
+    //debug
+    gre_tunnel_key6_t test_key = key->gtk_v6;
+    uword *test_p = hash_get_mem(gm->tunnel_by_key6, &test_key);
+    clib_warning("After add - tunnel lookup: %s", test_p ? "found" : "not found");
+    if (test_p) {
+      clib_warning("Found tunnel instance: %d", *test_p);
     }
+  }
   else
     {
       // Debug IPv4 key
