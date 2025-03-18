@@ -117,9 +117,29 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
     }
   else
     {
+       // debug 1 for IPv6
+    clib_warning("GRE tunnel configuration - src: %U dst: %U key: %d",
+      format_ip6_address, &a->src.ip6, format_ip6_address,
+      &a->dst.ip6, a->gre_key);
+
       gre_mk_key6 (&a->src.ip6, &a->dst.ip6, outer_fib_index, a->type, a->mode,
 		   a->session_id, a->gre_key, &key->gtk_v6);
-      p = hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6);
+      
+      // debug 2 for IPv6
+    clib_warning("Created IPv6 key structure:");
+    clib_warning("  gtk_src: %U", format_ip6_address, &key->gtk_v6.gtk_src);
+    clib_warning("  gtk_dst: %U", format_ip6_address, &key->gtk_v6.gtk_dst);
+    clib_warning("  fib_index: %d", key->gtk_v6.gtk_common.fib_index);
+    clib_warning("  gre_key: %d", key->gtk_v6.gtk_common.gre_key);
+    clib_warning("  type: %d", key->gtk_v6.gtk_common.type);
+    clib_warning("  mode: %d", key->gtk_v6.gtk_common.mode);
+    // debug 3 for IPv6
+    clib_warning("Storage key memory: %U", format_hex_bytes, &key->gtk_v6,
+                sizeof(gre_tunnel_key6_t));
+    clib_warning(
+        "Storage hash value: %u",
+        hash_memory((void *)&key->gtk_v6, sizeof(gre_tunnel_key6_t), 0));
+    p = hash_get_mem(gm->tunnel_by_key6, &key->gtk_v6);
     }
 
   if (NULL == p)
@@ -148,6 +168,11 @@ gre_tunnel_db_add (gre_tunnel_t *t, gre_tunnel_key_t *key)
       key->gtk_v6.gtk_common.type,
       key->gtk_v6.gtk_common.mode,
       key->gtk_v6.gtk_common.gre_key);
+
+        // Debug hash key memory
+    clib_warning("IPv6 key memory: %U",
+      format_hex_bytes, &key->gtk_v6, sizeof(gre_tunnel_key6_t));
+
 
       hash_set_mem_alloc (&gm->tunnel_by_key6, &key->gtk_v6, t->dev_instance);
 
@@ -635,6 +660,10 @@ vnet_gre_tunnel_delete (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   gre_tunnel_t *t;
   gre_tunnel_key_t key;
   u32 sw_if_index;
+
+    //debug
+    clib_warning("Deleting GRE tunnel - is_ipv6: %d, type: %d, mode: %d, gre_key: 0x%x",
+      is_ipv6, a->type, a->mode, a->gre_key);
 
   t = gre_tunnel_db_find (a, outer_fib_index, &key);
   if (NULL == t)

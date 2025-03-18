@@ -314,6 +314,9 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
         vec_validate (rewrite, sizeof (*h6) + sizeof (gre_key_t) - 1);
       else
         vec_validate (rewrite, sizeof (*h6) - 1);
+      //debug
+      clib_warning("Rewrite buffer created - size: %d bytes", vec_len(rewrite));
+
       h6 = (ip6_and_gre_header_t *) rewrite;
       gre = &h6->gre;
       h6->ip6.ip_version_traffic_class_and_flow_label =
@@ -325,8 +328,24 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h6->ip6.src_address.as_u64[1] = t->tunnel_src.ip6.as_u64[1];
       h6->ip6.dst_address.as_u64[0] = dst->ip6.as_u64[0];
       h6->ip6.dst_address.as_u64[1] = dst->ip6.as_u64[1];
-    }
 
+      //debug
+      clib_warning("Creating IPv6 GRE header - src: %U, dst: %U",
+        format_ip6_address, &t->tunnel_src.ip6,
+        format_ip6_address, &dst->ip6);
+      
+        clib_warning("IPv6 GRE header - flags: 0x%x, protocol: 0x%x",
+          clib_net_to_host_u16(h6->gre.flags_and_version),
+          clib_net_to_host_u16(h6->gre.protocol));
+          
+      // If there's a key, add more debug
+      if (gre_key_is_valid(t->gre_key))
+      {
+       gre_header_with_key_t *grek = (gre_header_with_key_t *)(&h6->gre);
+       clib_warning("GRE key included: 0x%x", clib_net_to_host_u32(grek->key));
+      }
+          }
+        
   if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
     {
       gre->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
@@ -516,10 +535,22 @@ static void
 gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 	     const void *data)
 {
+  //debug
+  clib_warning("gre44_fixup entered - buffer current: %d, length: %d",
+    b0->current_data, b0->current_length);
+  
   tunnel_encap_decap_flags_t flags;
   ip6_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
+  
+  //debug
+  clib_warning("IPv6+GRE header before fixup - src: %U dst: %U protocol: %d length: %d",
+    format_ip4_address, &ip0->ip6.src_address,
+    format_ip4_address, &ip0->ip6.dst_address,
+    ip0->ip6.protocol,
+    clib_net_to_host_u16(ip0->ip6.payload_length));
+
   // Clear IPv6 flow label (bits 0-19 of the first 32-bit word after version &
   // traffic class)
   // ip0->ip6.ip_version_traffic_class_and_flow_label &=
@@ -564,6 +595,9 @@ gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   // DEBUG: Check protocol value after all changes
   clib_warning ("IPv6 protocol after fix: 0x%x", ip0->ip6.protocol);
+  clib_warning("After fixup - buffer current: %d, length: %d, ip length: %d",
+    b0->current_data, b0->current_length,
+    clib_net_to_host_u16(ip0->ip6.payload_length));
 }
 
 static void
