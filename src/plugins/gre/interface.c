@@ -660,6 +660,7 @@ vnet_gre_tunnel_delete (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   gre_tunnel_t *t;
   gre_tunnel_key_t key;
   u32 sw_if_index;
+  u8 is_ipv6 = a->is_ipv6;
 
     //debug
     clib_warning("Deleting GRE tunnel - is_ipv6: %d, type: %d, mode: %d, gre_key: 0x%x",
