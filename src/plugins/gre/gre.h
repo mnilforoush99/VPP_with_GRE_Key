@@ -420,6 +420,8 @@ gre_mk_key6 (const ip6_address_t *src, const ip6_address_t *dst, u32 fib_index,
 	     gre_tunnel_type_t ttype, tunnel_mode_t tmode, u16 session_id,
 	     gre_key_t gre_key, gre_tunnel_key6_t *key)
 {
+  clib_memset (key, 0, sizeof (*key)); // Zero entire structure first
+  key->gtk_src = *src;
   key->gtk_src = *src;
   key->gtk_dst = *dst;
   key->gtk_common.type = ttype;
