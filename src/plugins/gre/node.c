@@ -135,28 +135,39 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
   //debug IPv6
   // In gre_tunnel_get, right before the hash lookup
   if (is_ipv6) {
-    clib_warning("IPv6 tunnel lookup - key: src=%U dst=%U fib=%d type=%d key=%u",
-                format_ip6_address, &key->gtk_v6.gtk_src,
-                format_ip6_address, &key->gtk_v6.gtk_dst,
-                key->gtk_v6.gtk_common.fib_index,
-                key->gtk_v6.gtk_common.type,
-                key->gtk_v6.gtk_common.gre_key);
-    // Also print the raw key memory
-    clib_warning("IPv6 lookup key memory: %U",
-                format_hex_bytes, &key->gtk_v6, sizeof(gre_tunnel_key6_t));
-    clib_warning("Hash value: %u", 
-                  hash_memory(&key->gtk_v6, sizeof(gre_tunnel_key6_t), 0));
-      // Compare with the hash table
-    u32 *val_vec = NULL;
-    hash_foreach_mem(kv, v, gm->tunnel_by_key6, 
-    ({
-      if (v == 0) continue;  // Skip empty entries
-      vec_add1(val_vec, v);
-      clib_warning("Existing entry hash val: %u", 
-                   hash_memory(kv, sizeof(gre_tunnel_key6_t), 0));
-    }));
-    clib_warning("Total IPv6 tunnels in hash: %d", vec_len(val_vec));
-    vec_free(val_vec);
+    clib_warning("IPv6 tunnel lookup - key memory: ");
+  for (int i = 0; i < sizeof(gre_tunnel_key6_t); i += 16) {
+    clib_warning("  bytes %2d-%2d: %02x%02x%02x%02x %02x%02x%02x%02x %02x%02x%02x%02x %02x%02x%02x%02x",
+                i, i+15,
+                ((u8*)&key->gtk_v6)[i],
+                ((u8*)&key->gtk_v6)[i+1],
+                ((u8*)&key->gtk_v6)[i+2],
+                ((u8*)&key->gtk_v6)[i+3],
+                ((u8*)&key->gtk_v6)[i+4],
+                ((u8*)&key->gtk_v6)[i+5],
+                ((u8*)&key->gtk_v6)[i+6],
+                ((u8*)&key->gtk_v6)[i+7],
+                ((u8*)&key->gtk_v6)[i+8],
+                ((u8*)&key->gtk_v6)[i+9],
+                ((u8*)&key->gtk_v6)[i+10],
+                ((u8*)&key->gtk_v6)[i+11],
+                ((u8*)&key->gtk_v6)[i+12],
+                ((u8*)&key->gtk_v6)[i+13],
+                ((u8*)&key->gtk_v6)[i+14],
+                ((u8*)&key->gtk_v6)[i+15]);
+  }
+  
+  // Simply check if there are any entries in the hash table
+  u32 count = hash_elts(gm->tunnel_by_key6);
+  clib_warning("Total IPv6 tunnels in hash: %d", count);
+  
+  // Instead of trying to iterate the hash, let's just print our lookup details
+  clib_warning("Looking up IPv6 tunnel - src: %U dst: %U fib: %d type: %d key: %u",
+              format_ip6_address, &key->gtk_v6.gtk_src,
+              format_ip6_address, &key->gtk_v6.gtk_dst,
+              key->gtk_v6.gtk_common.fib_index,
+              key->gtk_v6.gtk_common.type,
+              key->gtk_v6.gtk_common.gre_key);
   }
 
   const uword *p;
