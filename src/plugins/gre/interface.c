@@ -126,7 +126,6 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
 		   a->session_id, a->gre_key, &key->gtk_v6);
 
       //debug
-      if (t->tunnel_dst.fp_proto == FIB_PROTOCOL_IP6) {
         clib_warning("IPv6 key struct size: %d", sizeof(gre_tunnel_key6_t));
         clib_warning("IPv6 key alignment: %d", __alignof__(gre_tunnel_key6_t));
         
@@ -143,7 +142,6 @@ gre_tunnel_db_find (const vnet_gre_tunnel_add_del_args_t *a,
                       (i+5 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+5] : 0,
                       (i+6 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+6] : 0,
                       (i+7 < sizeof(gre_tunnel_key6_t)) ? key_memory[i+7] : 0);
-        }
       }      
       
       // debug 2 for IPv6
