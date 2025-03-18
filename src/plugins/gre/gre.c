@@ -476,6 +476,9 @@ static void
 gre64_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 	     const void *data)
 {
+    //debug
+    clib_warning("gre64_fixup entered - buffer current: %d, length: %d",
+      b0->current_data, b0->current_length);
   tunnel_encap_decap_flags_t flags;
   ip4_and_gre_header_t *ip0;
 
@@ -510,6 +513,10 @@ static void
 gre46_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 	     const void *data)
 {
+    //debug
+    clib_warning("gre46_fixup entered - buffer current: %d, length: %d",
+      b0->current_data, b0->current_length);
+
   tunnel_encap_decap_flags_t flags;
   ip6_and_gre_header_t *ip0;
 
@@ -536,7 +543,7 @@ gre66_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 	     const void *data)
 {
   //debug
-  clib_warning("gre44_fixup entered - buffer current: %d, length: %d",
+  clib_warning("gre66_fixup entered - buffer current: %d, length: %d",
     b0->current_data, b0->current_length);
   
   tunnel_encap_decap_flags_t flags;

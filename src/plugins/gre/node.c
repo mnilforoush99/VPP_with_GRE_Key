@@ -131,6 +131,21 @@ gre_tunnel_get (const gre_main_t *gm, vlib_node_runtime_t *node,
       clib_warning ("Key v4 details: %u", key->gtk_v4);
     }
   // end debug 1 print
+
+  //debug IPv6
+  // In gre_tunnel_get, right before the hash lookup
+  if (is_ipv6) {
+    clib_warning("IPv6 tunnel lookup - key: src=%U dst=%U fib=%d type=%d key=%u",
+                format_ip6_address, &key->gtk_v6.gtk_src,
+                format_ip6_address, &key->gtk_v6.gtk_dst,
+                key->gtk_v6.gtk_common.fib_index,
+                key->gtk_v6.gtk_common.type,
+                key->gtk_v6.gtk_common.gre_key);
+    // Also print the raw key memory
+    clib_warning("IPv6 lookup key memory: %U",
+                format_hex_bytes, &key->gtk_v6, sizeof(gre_tunnel_key6_t));
+  }
+
   const uword *p;
   p = is_ipv6 ? hash_get_mem (gm->tunnel_by_key6, &key->gtk_v6) :
 		hash_get_mem (gm->tunnel_by_key4, &key->gtk_v4);
