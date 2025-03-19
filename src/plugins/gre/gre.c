@@ -387,6 +387,10 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   ip0 = vlib_buffer_get_current (b0);
 
+  // Add debug message to see value BEFORE any processing
+  u16 before_value = clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset);
+  clib_warning("Fragment offset BEFORE processing: 0x%x", before_value);
+
   // Dump packet before fixup
   u8 *pkt_before = vlib_buffer_get_current(b0);
   u32 len_before = vlib_buffer_length_in_chain(vm, b0);
@@ -400,7 +404,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     clib_net_to_host_u16(ip0->ip4.length));
 
   /* Must reset this here as it gets corrupted during packet processing */
-  ip0->ip4.flags_and_fragment_offset = 0;
+  //ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
   // Access GRE headers for debug purposes
@@ -429,7 +433,21 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
    * that was applied at the midchain node */
   ip0->ip4.length =
     clib_host_to_net_u16 (vlib_buffer_length_in_chain (vm, b0));
+
+  //debug
+  // Check value before tunnel_encap_fixup_4o4
+  u16 before_fixup = clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset);
+  clib_warning("Fragment offset before fixup: 0x%x", before_fixup);
+
   tunnel_encap_fixup_4o4 (flags, (ip4_header_t *) (ip0 + 1), &ip0->ip4);
+
+  //debug
+  // Check value after tunnel_encap_fixup_4o4 but before checksum
+  u16 after_fixup = clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset);
+  clib_warning("Fragment offset after fixup: 0x%x", after_fixup);
+
+    // Set to zero HERE instead, after tunnel_encap_fixup_4o4
+    ip0->ip4.flags_and_fragment_offset = 0;
 
    // Dump packet after fixup
    u8 *pkt_after = vlib_buffer_get_current(b0);
