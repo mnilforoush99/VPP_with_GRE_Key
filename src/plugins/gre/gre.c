@@ -276,6 +276,9 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       clib_warning("Rewrite buffer created - size: %d bytes", vec_len(rewrite));
       h4 = (ip4_and_gre_header_t *) rewrite;
       gre = &h4->gre;
+
+      /* Clear the entire header to zeros first to prevent any legacy data */
+      clib_memset(h4, 0, sizeof(*h4) + (gre_key_is_valid(t->gre_key) ? sizeof(gre_key_t) : 0));
       // debug 3
       //  Add debug print for rewrite buffer
       clib_warning ("Rewrite buffer size: %d", vec_len (rewrite));
@@ -291,6 +294,13 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
       h4->ip4.dst_address.as_u32 = dst->ip4.as_u32;
       h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
+
+      //debug 
+      /* Debug the header after initialization */
+      clib_warning("IPv4 header after init - flags_and_fragment_offset: 0x%x", 
+      clib_net_to_host_u16(h4->ip4.flags_and_fragment_offset));
+
+
       // debug 1
       clib_warning("Creating IPv4 GRE header - src: %U, dst: %U",
         format_ip4_address, &t->tunnel_src.ip4,
@@ -306,7 +316,23 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
        gre_header_with_key_t *grek = (gre_header_with_key_t *)(&h4->gre);
        clib_warning("GRE key included: 0x%x", clib_net_to_host_u32(grek->key));
       }
-    }
+
+      /* First set protocol for all GRE types */
+      gre->protocol = clib_host_to_net_u16(gre_proto_from_vnet_link(link_type));
+
+      /* Then add GRE key if needed */
+      if (gre_key_is_valid(t->gre_key)) {
+        gre_header_with_key_t *grek = (gre_header_with_key_t *)gre;
+        grek->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
+        grek->key = clib_host_to_net_u32(t->gre_key);
+
+        /* Debug after setting key */
+        clib_warning("After setting GRE key - IPv4 flags_and_fragment_offset: 0x%x", 
+                     clib_net_to_host_u16(h4->ip4.flags_and_fragment_offset));
+      } else {
+        gre->flags_and_version = 0;
+      }
+        }
   else
     {
       /* Allocate space for maximum header size including key */
@@ -355,19 +381,19 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     {
       gre->protocol =
 	clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
-      gre->flags_and_version = 0; // Clear flags first
-      /* Add key only for non-ERSPAN tunnels */
-      if (gre_key_is_valid (t->gre_key))
-	{
-	  gre_header_with_key_t *grek = (gre_header_with_key_t *) gre;
-	  grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
-	  grek->key = clib_host_to_net_u32 (t->gre_key);
-	  // debug 4
-	  clib_warning ("Rewrite GRE - flags: 0x%x key: 0x%x",
-			clib_net_to_host_u16 (grek->flags_and_version),
-			clib_net_to_host_u32 (grek->key));
-	  clib_warning ("Setting GRE key: 0x%x", t->gre_key);
-	}
+  //    gre->flags_and_version = 0; // Clear flags first
+  //    /* Add key only for non-ERSPAN tunnels */
+  //    if (gre_key_is_valid (t->gre_key))
+	//{
+	//  gre_header_with_key_t *grek = (gre_header_with_key_t *) gre;
+	//  grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
+	//  grek->key = clib_host_to_net_u32 (t->gre_key);
+	//  // debug 4
+	//  clib_warning ("Rewrite GRE - flags: 0x%x key: 0x%x",
+	//		clib_net_to_host_u16 (grek->flags_and_version),
+	//		clib_net_to_host_u32 (grek->key));
+	//  clib_warning ("Setting GRE key: 0x%x", t->gre_key);
+	//}
     }
     // Final debug before returning
     clib_warning("Final rewrite buffer - length: %d bytes", vec_len(rewrite));
@@ -387,9 +413,12 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 
   ip0 = vlib_buffer_get_current (b0);
 
-  // Add debug message to see value BEFORE any processing
-  u16 before_value = clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset);
-  clib_warning("Fragment offset BEFORE processing: 0x%x", before_value);
+  /* Debug the flags_and_fragment_offset when entering fixup */
+  clib_warning("GRE44 fixup entry - flags_and_fragment_offset: 0x%x", 
+    clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset));
+
+  /* Save original value to check if tunnel_encap_fixup_4o4 changes it */
+  u16 orig_flags = ip0->ip4.flags_and_fragment_offset;
 
   // Dump packet before fixup
   u8 *pkt_before = vlib_buffer_get_current(b0);
@@ -404,7 +433,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     clib_net_to_host_u16(ip0->ip4.length));
 
   /* Must reset this here as it gets corrupted during packet processing */
-  //ip0->ip4.flags_and_fragment_offset = 0;
+  ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
   // Access GRE headers for debug purposes
@@ -440,6 +469,14 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   clib_warning("Fragment offset before fixup: 0x%x", before_fixup);
 
   tunnel_encap_fixup_4o4 (flags, (ip4_header_t *) (ip0 + 1), &ip0->ip4);
+
+  //debug
+  /* Check if tunnel_encap_fixup_4o4 changed the flags */
+  if (ip0->ip4.flags_and_fragment_offset != 0) {
+    clib_warning("tunnel_encap_fixup_4o4 changed flags from 0x%x to 0x%x", 
+                 clib_net_to_host_u16(orig_flags),
+                 clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset));
+  }
 
   //debug
   // Check value after tunnel_encap_fixup_4o4 but before checksum
