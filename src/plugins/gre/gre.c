@@ -616,6 +616,23 @@ gre_update_adj (vnet_main_t *vnm, u32 sw_if_index, adj_index_t ai)
   t = pool_elt_at_index (gm->tunnels, ti);
   af = ADJ_FLAG_NONE;
 
+    // Add debug before rewrite creation
+    clib_warning("GRE update_adj - creating rewrite for tunnel %d, sw_if_index %d", 
+      ti, sw_if_index);
+
+// Get the rewrite template
+u8 *rewrite = gre_build_rewrite (vnm, sw_if_index, adj_get_link_type (ai),
+                  &t->tunnel_dst.fp_addr);
+
+// Debug the rewrite template before passing to adj_nbr_midchain_update_rewrite
+clib_warning("Passing rewrite to adj_nbr_midchain_update_rewrite, size: %d", 
+      vec_len(rewrite));
+for (int i = 0; i < vec_len(rewrite) && i < 28; i += 4) {
+clib_warning("Rewrite bytes %2d-%2d: 0x%02x%02x%02x%02x", 
+       i, i+3, 
+       rewrite[i], rewrite[i+1], rewrite[i+2], rewrite[i+3]);
+}
+
   /*
    * the user has not requested that the load-balancing be based on
    * a flow hash of the inner packet. so use the stacking to choose
