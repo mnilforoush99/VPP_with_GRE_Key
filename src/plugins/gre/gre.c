@@ -371,6 +371,14 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     }
     // Final debug before returning
     clib_warning("Final rewrite buffer - length: %d bytes", vec_len(rewrite));
+
+    clib_warning("Memory dump of final rewrite buffer (size: %d bytes):", vec_len(rewrite));
+for (int i = 0; i < vec_len(rewrite); i += 4) {
+  clib_warning("Bytes %2d-%2d: 0x%02x%02x%02x%02x", 
+              i, i+3, 
+              rewrite[i], rewrite[i+1], rewrite[i+2], rewrite[i+3]);
+}
+
   return (rewrite);
 }
 
