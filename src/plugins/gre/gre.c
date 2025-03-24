@@ -386,98 +386,68 @@ static void
 gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 	     const void *data)
 {
-  // debug 5
-  //  Add buffer content debug before fixup
-  clib_warning ("Before fixup - buffer current: %d, length: %d",
-		b0->current_data, b0->current_length);
   tunnel_encap_decap_flags_t flags;
   ip4_and_gre_header_t *ip0;
 
   ip0 = vlib_buffer_get_current (b0);
 
-  // Dump packet before fixup
-  u8 *pkt_before = vlib_buffer_get_current(b0);
-  u32 len_before = vlib_buffer_length_in_chain(vm, b0);
-  gre_dump_packet_hex("IPv4+GRE before fixup", pkt_before, len_before);
-
   //debug
-  clib_warning("IPv4+GRE header before fixup - src: %U dst: %U protocol: %d length: %d",
-    format_ip4_address, &ip0->ip4.src_address,
-    format_ip4_address, &ip0->ip4.dst_address,
-    ip0->ip4.protocol,
-    clib_net_to_host_u16(ip0->ip4.length));
+  clib_warning("ENTERING gre44_fixup - buffer current: %d, length: %d", 
+    b0->current_data, b0->current_length);
+  clib_warning("IPv4 header - flags_and_fragment_offset: 0x%x",
+    clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset));
+  
+    // Dump the first 32 bytes of the packet buffer
+  u8 *pkt = vlib_buffer_get_current(b0);
+  clib_warning("Packet memory dump BEFORE fixup:");
+  for (int i = 0; i < 32; i += 4) {
+    clib_warning("Bytes %2d-%2d: 0x%02x%02x%02x%02x", 
+                i, i+3, pkt[i], pkt[i+1], pkt[i+2], pkt[i+3]);
+  }
 
   /* Must reset this here as it gets corrupted during packet processing */
   //ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
-  // Access GRE headers for debug purposes
-  gre_header_t *gre0;
-  gre_header_with_key_t *grek0;
-  u16 gre_flags;
-  u32 gre_key;
-  u16 gre_proto;
-  u8 *packet_data;
-  int i;
-  gre0 = (gre_header_t *)&ip0->gre;
-  grek0 = (gre_header_with_key_t *) gre0;
-  // end GRE headers
-
-  // Save GRE header values for debug purposes
-  gre_flags = grek0->flags_and_version;
-  gre_key = grek0->key;
-  gre_proto = grek0->protocol;
-
-  //debug
-  clib_warning("GRE header - flags: 0x%x protocol: 0x%x",
-    clib_net_to_host_u16(gre0->flags_and_version),
-    clib_net_to_host_u16(gre0->protocol));
+  // Debug after reset
+  clib_warning("AFTER RESET - flags_and_fragment_offset: 0x%x",
+    clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset));
   
   /* Fixup the checksum and len fields in the GRE tunnel encap
    * that was applied at the midchain node */
   ip0->ip4.length =
     clib_host_to_net_u16 (vlib_buffer_length_in_chain (vm, b0));
+  
+    // Debug after setting length
+  clib_warning("AFTER length update - flags_and_fragment_offset: 0x%x",
+    clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset));
+  
+    // Debug GRE key before tunnel_encap_fixup_4o4
+    gre_header_with_key_t *grek = (gre_header_with_key_t *)&ip0->gre;
+    clib_warning("BEFORE tunnel_encap_fixup_4o4 - GRE flags: 0x%x, key: 0x%x",
+                 clib_net_to_host_u16(grek->flags_and_version),
+                 clib_net_to_host_u32(grek->key));
+
   tunnel_encap_fixup_4o4 (flags, (ip4_header_t *) (ip0 + 1), &ip0->ip4);
 
-   // Dump packet after fixup
-   u8 *pkt_after = vlib_buffer_get_current(b0);
-   u32 len_after = vlib_buffer_length_in_chain(vm, b0);
-   gre_dump_packet_hex("IPv4+GRE after fixup", pkt_after, len_after);
+  // Debug after tunnel_encap_fixup_4o4
+    clib_warning("AFTER tunnel_encap_fixup_4o4 - flags_and_fragment_offset: 0x%x",
+      clib_net_to_host_u16(ip0->ip4.flags_and_fragment_offset));
+clib_warning("AFTER tunnel_encap_fixup_4o4 - GRE flags: 0x%x, key: 0x%x",
+      clib_net_to_host_u16(grek->flags_and_version),
+      clib_net_to_host_u32(grek->key)); 
 
-     // Debug the GRE header specifically
-  gre_header_t *gre = (gre_header_t *)&ip0->gre;
-  clib_warning("GRE header - flags: 0x%x, protocol: 0x%x", 
-               clib_net_to_host_u16(gre->flags_and_version),
-               clib_net_to_host_u16(gre->protocol));
-   
-
-  // Restore GRE header values for debug purposes
-  grek0->flags_and_version = gre_flags;
-  grek0->key = gre_key;
-  grek0->protocol = gre_proto;
-
-  // debug 6
-  //  Add buffer content debug after fixup
-  clib_warning("After fixup - buffer current: %d, length: %d, ip length: %d",
-    b0->current_data, b0->current_length,
-    clib_net_to_host_u16(ip0->ip4.length));
 
   ip0->ip4.checksum = ip4_header_checksum (&ip0->ip4);
 
-  // debug 2
-  clib_warning ("TX GRE44 - src: %U dst: %U flags: 0x%x key: 0x%x",
-		format_ip4_address, &ip0->ip4.src_address, format_ip4_address,
-		&ip0->ip4.dst_address,
-		clib_net_to_host_u16 (grek0->flags_and_version),
-		clib_net_to_host_u32 (grek0->key));
+  // Final memory dump
+  pkt = vlib_buffer_get_current(b0);
+  clib_warning("Packet memory dump AFTER fixup:");
+  for (int i = 0; i < 32; i += 4) {
+    clib_warning("Bytes %2d-%2d: 0x%02x%02x%02x%02x", 
+                i, i+3, pkt[i], pkt[i+1], pkt[i+2], pkt[i+3]);
+  }
 
-  // Add packet data inspection here for debug purposes
-  packet_data = vlib_buffer_get_current (b0);
-  clib_warning ("Packet data before transmission:");
-  for (i = 0; i < 32; i++)
-    {
-      clib_warning ("byte[%d]: 0x%02x", i, packet_data[i]);
-    }
 }
 
 static void
