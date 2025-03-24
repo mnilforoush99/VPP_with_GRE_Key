@@ -376,7 +376,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
                packet_start[0], packet_start[1], packet_start[2], packet_start[3],
                packet_start[4], packet_start[5], packet_start[6], packet_start[7]);
                
-               
+
   tunnel_encap_decap_flags_t flags;
   ip4_and_gre_header_t *ip0;
 
@@ -1035,6 +1035,15 @@ gre_init (vlib_main_t *vm)
   clib_error_t *error;
   ip_main_t *im = &ip_main;
   ip_protocol_info_t *pi;
+
+   // Add structure debug here
+   clib_warning("GRE_STRUCT_DEBUG: sizeof(gre_header_t)=%lu", sizeof(gre_header_t));
+   clib_warning("GRE_STRUCT_DEBUG: sizeof(ip4_and_gre_header_t)=%lu", 
+                sizeof(ip4_and_gre_header_t));
+   clib_warning("GRE_STRUCT_DEBUG: offsetof(ip4_and_gre_header_t, gre)=%lu",
+               offsetof(ip4_and_gre_header_t, gre));
+   clib_warning("GRE_STRUCT_DEBUG: offsetof(gre_header_with_key_t, key)=%lu",
+               offsetof(gre_header_with_key_t, key));
 
   clib_memset (gm, 0, sizeof (gm[0]));
   gm->vlib_main = vm;
