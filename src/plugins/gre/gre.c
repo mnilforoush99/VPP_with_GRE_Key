@@ -275,7 +275,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       //debug
       clib_warning("Rewrite buffer created - size: %d bytes", vec_len(rewrite));
       h4 = (ip4_and_gre_header_t *) rewrite;
-      gre = &h4->gre;
+      gre = (gre_header_t *)&h4->gre;
       // debug 3
       //  Add debug print for rewrite buffer
       clib_warning ("Rewrite buffer size: %d", vec_len (rewrite));
@@ -400,7 +400,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     clib_net_to_host_u16(ip0->ip4.length));
 
   /* Must reset this here as it gets corrupted during packet processing */
-  ip0->ip4.flags_and_fragment_offset = 0;
+  //ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
   // Access GRE headers for debug purposes
@@ -411,7 +411,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
   u16 gre_proto;
   u8 *packet_data;
   int i;
-  gre0 = &ip0->gre;
+  gre0 = (gre_header_t *)&ip0->gre;
   grek0 = (gre_header_with_key_t *) gre0;
   // end GRE headers
 
