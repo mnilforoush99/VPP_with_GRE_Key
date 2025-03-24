@@ -437,7 +437,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
    gre_dump_packet_hex("IPv4+GRE after fixup", pkt_after, len_after);
 
      // Debug the GRE header specifically
-  gre_header_t *gre = &ip0->gre;
+  gre_header_t *gre = (gre_header_t *)&ip0->gre;
   clib_warning("GRE header - flags: 0x%x, protocol: 0x%x", 
                clib_net_to_host_u16(gre->flags_and_version),
                clib_net_to_host_u16(gre->protocol));
