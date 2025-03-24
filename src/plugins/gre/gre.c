@@ -27,25 +27,6 @@ extern gre_main_t gre_main;
 
 #ifndef CLIB_MARCH_VARIANT
 
-static void
-gre_dump_packet_hex(const char *desc, const u8 *pkt, u32 len)
-{
-  u32 i, max_print = 64; // Limit printout length
-  clib_warning("%s (%d bytes):", desc, len);
-  for (i = 0; i < len && i < max_print; i += 16) {
-    u32 line_len = ((len - i) < 16) ? (len - i) : 16;
-    u8 hex_line[49]; // 3 chars per byte + null terminator
-    u32 j;
-    
-    memset(hex_line, 0, sizeof(hex_line));
-    for (j = 0; j < line_len; j++) {
-      snprintf((char*)hex_line + j*3, 4, " %02x", pkt[i+j]);
-    }
-    
-    clib_warning("  %04x:%s", i, hex_line);
-  }
-}
-
 gre_main_t gre_main;
 
 typedef struct
