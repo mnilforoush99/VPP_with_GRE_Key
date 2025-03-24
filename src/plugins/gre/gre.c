@@ -253,6 +253,10 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
         vec_validate (rewrite, sizeof(*h4) + sizeof(gre_key_t) - 1);
       else
         vec_validate (rewrite, sizeof(*h4) - 1);
+      
+      // Zero out the entire rewrite buffer before filling it
+      clib_memset(rewrite, 0, vec_len(rewrite));
+      
       //debug
       clib_warning("Rewrite buffer created - size: %d bytes", vec_len(rewrite));
       h4 = (ip4_and_gre_header_t *) rewrite;
