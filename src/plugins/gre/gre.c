@@ -367,6 +367,16 @@ static void
 gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
 	     const void *data)
 {
+  // Debug VERY early in function
+  u8 *packet_start = vlib_buffer_get_current(b0);
+  
+  clib_warning("ENTERING gre44_fixup - buffer: %p, current_data: %d", 
+               b0, b0->current_data);
+  clib_warning("First 8 bytes: 0x%02x%02x%02x%02x%02x%02x%02x%02x",
+               packet_start[0], packet_start[1], packet_start[2], packet_start[3],
+               packet_start[4], packet_start[5], packet_start[6], packet_start[7]);
+               
+               
   tunnel_encap_decap_flags_t flags;
   ip4_and_gre_header_t *ip0;
 

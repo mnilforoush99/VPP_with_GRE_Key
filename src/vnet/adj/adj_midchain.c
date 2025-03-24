@@ -180,6 +180,18 @@ adj_nbr_midchain_update_rewrite (adj_index_t adj_index,
 				 adj_flags_t flags,
 				 u8 *rewrite)
 {
+    // Add debug here
+      clib_warning("adj_midchain_update_rewrite: adj %d, rewrite_len %d", 
+        adj_index, vec_len(rewrite));
+
+    // Debug the actual rewrite content
+    if (rewrite && vec_len(rewrite) >= 28) {
+    clib_warning("Rewrite bytes 4-7: 0x%02x%02x%02x%02x",
+          rewrite[4], rewrite[5], rewrite[6], rewrite[7]);
+    clib_warning("Rewrite bytes 24-27: 0x%02x%02x%02x%02x",
+          rewrite[24], rewrite[25], rewrite[26], rewrite[27]);
+    }
+    
     ip_adjacency_t *adj;
 
     ASSERT(ADJ_INDEX_INVALID != adj_index);
