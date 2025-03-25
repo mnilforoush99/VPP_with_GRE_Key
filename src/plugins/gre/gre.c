@@ -254,7 +254,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       if (gre_key_is_valid(t->gre_key)) {
         vec_validate (rewrite, sizeof(*h4k) - 1);
         // Zero out the entire rewrite buffer before filling it
-        //clib_memset(rewrite, 0, vec_len(rewrite));
+        clib_memset(rewrite, 0, vec_len(rewrite));
         h4k = (ip4_and_gre_header_with_key_t *) rewrite;
         grek = &h4k->gre;
 

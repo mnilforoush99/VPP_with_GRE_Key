@@ -55,7 +55,7 @@ typedef struct
   u16 protocol;
 } gre_header_t;
 
-typedef struct
+typedef CLIB_PACKED (struct
 {
   /* flags and version */
   u16 flags_and_version;
@@ -63,7 +63,7 @@ typedef struct
   u16 protocol;
   /* Optional GRE Key field */
   u32 key;
-} gre_header_with_key_t;
+}) gre_header_with_key_t;
 
 always_inline u32
 gre_get_key (const gre_header_t *h)
