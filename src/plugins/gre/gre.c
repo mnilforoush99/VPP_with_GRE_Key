@@ -272,6 +272,14 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
         //set up GRE Key
         grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
         grek->key = clib_host_to_net_u32 (t->gre_key);
+        if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
+          {
+            grek->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
+            grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
+          }
+        else
+          grek->protocol =
+            clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
       }
       else {
         vec_validate (rewrite, sizeof(*h4) - 1);
@@ -295,6 +303,15 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
       h4->ip4.dst_address.as_u32 = dst->ip4.as_u32;
       h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
+
+      if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
+        {
+          gre->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
+          gre->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
+        }
+      else
+        gre->protocol =
+          clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
       // debug 1
       clib_warning("Creating IPv4 GRE header - src: %U, dst: %U",
         format_ip4_address, &t->tunnel_src.ip4,
@@ -303,14 +320,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
         clib_warning("IPv4 GRE header - flags: 0x%x, protocol: 0x%x",
           clib_net_to_host_u16(h4->gre.flags_and_version),
           clib_net_to_host_u16(h4->gre.protocol));
-          
-      // If there's a key, add more debug
-      if (gre_key_is_valid(t->gre_key))
-      {
-       gre_header_with_key_t *grek = (gre_header_with_key_t *)(&h4->gre);
-       clib_warning("GRE key included: 0x%x", clib_net_to_host_u32(grek->key));
       }
-     }
     }
   else
     {
@@ -351,15 +361,15 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       }
           }
         
-  if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
-    {
-      gre->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
-      gre->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
-    }
-  else
-    {
-      gre->protocol =
-	clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
+  //if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
+  //  {
+  //    gre->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
+  //    gre->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
+  //  }
+  //else
+  //  {
+  //    gre->protocol =
+	//clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
   //    gre->flags_and_version = 0; // Clear flags first
   //    /* Add key only for non-ERSPAN tunnels */
   //    if (gre_key_is_valid (t->gre_key))
@@ -373,7 +383,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 	//		clib_net_to_host_u32 (grek->key));
 	//  clib_warning ("Setting GRE key: 0x%x", t->gre_key);
 	//}
-    }
+  //  }
     // Final debug before returning
     clib_warning("Final rewrite buffer - length: %d bytes", vec_len(rewrite));
 
