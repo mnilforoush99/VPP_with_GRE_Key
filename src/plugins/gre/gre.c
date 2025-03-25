@@ -251,7 +251,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       /* Allocate space for maximum header size including key */
       //vec_validate (rewrite, sizeof (*h4) + sizeof (gre_key_t) - 1);
       if (gre_key_is_valid(t->gre_key)) {
-        vec_validate (rewrite, sizeof(ip4_gre_and_key_header_t) - 1);
+        vec_validate (rewrite, sizeof(ip4_and_gre_header_t) - 1);
         // Zero out the entire rewrite buffer before filling it
         clib_memset(rewrite, 0, vec_len(rewrite));
         h4 = (ip4_and_gre_header_t *) rewrite;
@@ -278,7 +278,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       //debug
       clib_warning("Rewrite buffer created - size: %d bytes", vec_len(rewrite));
       h4 = (ip4_and_gre_header_t *) rewrite;
-      gre = &h4->gre;
+      gre = (gre_header_t *)&h4->gre;
       // debug 3
       //  Add debug print for rewrite buffer
       clib_warning ("Rewrite buffer size: %d", vec_len (rewrite));
