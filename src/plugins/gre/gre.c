@@ -311,7 +311,6 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
        clib_warning("GRE key included: 0x%x", clib_net_to_host_u32(grek->key));
       }
      }
-
     }
   else
     {
