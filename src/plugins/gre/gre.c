@@ -214,6 +214,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
   gre_main_t *gm = &gre_main;
   const ip46_address_t *dst;
   ip4_and_gre_header_t *h4;
+  ip4_and_gre_header_with_key_t *h4k;
   ip6_and_gre_header_t *h6;
   gre_header_t *gre;
   gre_header_with_key_t *grek;
@@ -251,22 +252,22 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       /* Allocate space for maximum header size including key */
       //vec_validate (rewrite, sizeof (*h4) + sizeof (gre_key_t) - 1);
       if (gre_key_is_valid(t->gre_key)) {
-        vec_validate (rewrite, sizeof(ip4_and_gre_header_t) - 1);
+        vec_validate (rewrite, sizeof(*h4k) - 1);
         // Zero out the entire rewrite buffer before filling it
-        clib_memset(rewrite, 0, vec_len(rewrite));
-        h4 = (ip4_and_gre_header_t *) rewrite;
-        grek = &h4->gre;
+        //clib_memset(rewrite, 0, vec_len(rewrite));
+        h4k = (ip4_and_gre_header_with_key_t *) rewrite;
+        grek = &h4k->gre;
 
-        h4->ip4.ip_version_and_header_length = 0x45;
+        h4k->ip4.ip_version_and_header_length = 0x45;
         /* Initialize to prevent fragment offset field from being corrupted by
          * GRE Key, but also needs to be reset in fixup functions */
-        h4->ip4.flags_and_fragment_offset = 0;
-        h4->ip4.ttl = 254;
-        h4->ip4.protocol = IP_PROTOCOL_GRE;
+        h4k->ip4.flags_and_fragment_offset = 0;
+        h4k->ip4.ttl = 254;
+        h4k->ip4.protocol = IP_PROTOCOL_GRE;
         /* fixup ip4 header length and checksum after-the-fact */
-        h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
-        h4->ip4.dst_address.as_u32 = dst->ip4.as_u32;
-        h4->ip4.checksum = ip4_header_checksum (&h4->ip4);
+        h4k->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
+        h4k->ip4.dst_address.as_u32 = dst->ip4.as_u32;
+        h4k->ip4.checksum = ip4_header_checksum (&h4k->ip4);
 
         //set up GRE Key
         grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
@@ -278,7 +279,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       //debug
       clib_warning("Rewrite buffer created - size: %d bytes", vec_len(rewrite));
       h4 = (ip4_and_gre_header_t *) rewrite;
-      gre = (gre_header_t *)&h4->gre;
+      gre = &h4->gre;
       // debug 3
       //  Add debug print for rewrite buffer
       clib_warning ("Rewrite buffer size: %d", vec_len (rewrite));

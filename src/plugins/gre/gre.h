@@ -313,9 +313,16 @@ typedef struct
  */
 typedef CLIB_PACKED (struct {
   ip4_header_t ip4;
-  //gre_header_t gre;
-  gre_header_with_key_t gre;
+  gre_header_t gre;
 }) ip4_and_gre_header_t;
+
+/**
+ * @brief IPv4 and GRE header with key.
+ */
+typedef CLIB_PACKED (struct {
+  ip4_header_t ip4;
+  gre_header_with_key_t gre;
+}) ip4_and_gre_header_with_key_t;
 
 /**
  * @brief IPv6 and GRE header.
