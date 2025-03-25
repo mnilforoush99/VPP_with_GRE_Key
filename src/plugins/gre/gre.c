@@ -269,17 +269,18 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
         h4k->ip4.dst_address.as_u32 = dst->ip4.as_u32;
         h4k->ip4.checksum = ip4_header_checksum (&h4k->ip4);
 
+        if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
+        {
+          grek->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
+          grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
+        }
+      else
+        grek->protocol =
+          clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
+
         //set up GRE Key
         grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
         grek->key = clib_host_to_net_u32 (t->gre_key);
-        if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
-          {
-            grek->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
-            grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
-          }
-        else
-          grek->protocol =
-            clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
       }
       else {
         vec_validate (rewrite, sizeof(*h4) - 1);
