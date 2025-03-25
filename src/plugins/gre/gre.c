@@ -274,13 +274,14 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
           grek->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
           grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
         }
-      else
-        grek->protocol =
-          clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
+        else {
+          grek->protocol =
+            clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
 
-        //set up GRE Key
-        grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
-        grek->key = clib_host_to_net_u32 (t->gre_key);
+          //set up GRE Key for non-ERSPAN
+          grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
+          grek->key = clib_host_to_net_u32 (t->gre_key);
+        }
       }
       else {
         vec_validate (rewrite, sizeof(*h4) - 1);
