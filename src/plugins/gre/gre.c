@@ -359,14 +359,14 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       /* Add key only for non-ERSPAN tunnels */
       if (gre_key_is_valid (t->gre_key))
 	{
-	  gre_header_with_key_t *grek = (gre_header_with_key_t *) gre;
-	  grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
-	  grek->key = clib_host_to_net_u32 (t->gre_key);
+    gre->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
+    u32 *key_ptr = (u32 *)(gre + 1);  // Key comes right after GRE header
+    *key_ptr = clib_host_to_net_u32(t->gre_key);
 	  // debug 4
-	  clib_warning ("Rewrite GRE - flags: 0x%x key: 0x%x",
-			clib_net_to_host_u16 (grek->flags_and_version),
-			clib_net_to_host_u32 (grek->key));
-	  clib_warning ("Setting GRE key: 0x%x", t->gre_key);
+	  //clib_warning ("Rewrite GRE - flags: 0x%x key: 0x%x",
+		//	clib_net_to_host_u16 (grek->flags_and_version),
+		//	clib_net_to_host_u32 (grek->key));
+	  //clib_warning ("Setting GRE key: 0x%x", t->gre_key);
 	}
     }
     // Final debug before returning
@@ -400,7 +400,7 @@ gre44_fixup (vlib_main_t *vm, const ip_adjacency_t *adj, vlib_buffer_t *b0,
     clib_net_to_host_u16(ip0->ip4.length));
 
   /* Must reset this here as it gets corrupted during packet processing */
-  ip0->ip4.flags_and_fragment_offset = 0;
+  //ip0->ip4.flags_and_fragment_offset = 0;
   flags = pointer_to_uword (data);
 
   // Access GRE headers for debug purposes
