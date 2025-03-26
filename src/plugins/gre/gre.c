@@ -250,7 +250,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       /* Allocate space for maximum header size including key */
       //vec_validate (rewrite, sizeof (*h4) + sizeof (gre_key_t) - 1);
       if (gre_key_is_valid(t->gre_key))
-        vec_validate (rewrite, sizeof(*h4) + sizeof(gre_key_t) - 1);
+        vec_validate (rewrite, sizeof(*h4) + sizeof(gre_key_t));
       else
         vec_validate (rewrite, sizeof(*h4) - 1);
       //debug
