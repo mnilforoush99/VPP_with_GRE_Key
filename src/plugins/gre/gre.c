@@ -213,7 +213,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 {
   gre_main_t *gm = &gre_main;
   const ip46_address_t *dst;
-  ip4_and_gre_header_t *h4;
+  //ip4_and_gre_header_t *h4;
   ip6_and_gre_header_t *h6;
   gre_header_t *gre;
   u8 *rewrite = NULL;
