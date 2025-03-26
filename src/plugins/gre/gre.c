@@ -346,8 +346,8 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 
     // Debug output to verify key placement
     clib_warning("GRE key placed at offset %d with value 0x%x", 
-      (u8*)key_ptr - rewrite, 
-      clib_net_to_host_u32(*key_ptr));
+      (u8 *)&grek->key - rewrite, 
+      clib_net_to_host_u32(grek->key));
 
 	}
     }
