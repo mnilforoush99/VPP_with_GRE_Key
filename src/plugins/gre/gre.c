@@ -336,13 +336,18 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     {
       gre->protocol =
 	clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
-      gre->flags_and_version = 0; // Clear flags first
+      //gre->flags_and_version = 0; // Clear flags first
       /* Add key only for non-ERSPAN tunnels */
       if (gre_key_is_valid (t->gre_key))
 	{
     gre->flags_and_version = clib_host_to_net_u16(GRE_FLAGS_KEY);
     u32 *key_ptr = (u32 *)(gre + 1);  // Key comes right after GRE header
     *key_ptr = clib_host_to_net_u32(t->gre_key);
+
+    // Debug output to verify key placement
+    clib_warning("GRE key placed at offset %d with value 0x%x", 
+      (u8*)key_ptr - rewrite, 
+      clib_net_to_host_u32(*key_ptr));
 
 	}
     }
