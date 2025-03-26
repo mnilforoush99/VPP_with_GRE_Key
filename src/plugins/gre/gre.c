@@ -284,7 +284,8 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       // If there's a key, add more debug
       if (gre_key_is_valid(t->gre_key))
       {
-       gre_header_with_key_t *grek = (gre_header_with_key_t *)(&h4->gre);
+       gre_header_with_key_t *grek = (gre_header_with_key_t *) gre;
+       grek->key = clib_host_to_net_u32 (t->gre_key);
        clib_warning("GRE key included: 0x%x", clib_net_to_host_u32(grek->key));
       }
     }
@@ -348,6 +349,10 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     clib_warning("GRE key placed at offset %d with value 0x%x", 
       (u8 *)&grek->key - rewrite, 
       clib_net_to_host_u32(grek->key));
+
+      clib_warning("IPv4 GRE header (2nd print) - flags: 0x%x, protocol: 0x%x",
+        clib_net_to_host_u16(h4->gre.flags_and_version),
+        clib_net_to_host_u16(h4->gre.protocol));
 
 	}
     }
