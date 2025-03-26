@@ -183,7 +183,6 @@ _vnet_rewrite_one_header (const vnet_rewrite_header_t * h0,
       h0, packet0, h0->data_bytes, most_likely_size);
   
   /* Debug rewrite data before copy */
-  if (h0->data_bytes >= 28) {
     if (h0->data_bytes >= 28) {
       clib_warning("REWRITE_DEBUG: Template bytes 0-7: %02x%02x%02x%02x %02x%02x%02x%02x",
                    h0->data[0], h0->data[1], h0->data[2], h0->data[3],
