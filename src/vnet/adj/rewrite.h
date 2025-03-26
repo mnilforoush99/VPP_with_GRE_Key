@@ -183,14 +183,16 @@ _vnet_rewrite_one_header (const vnet_rewrite_header_t * h0,
       h0, packet0, h0->data_bytes, most_likely_size);
   
   /* Debug rewrite data before copy */
-    if (h0->data_bytes >= 28) {
-      clib_warning("REWRITE_DEBUG: Template bytes 0-7: %02x%02x%02x%02x %02x%02x%02x%02x",
-                   h0->data[0], h0->data[1], h0->data[2], h0->data[3],
-                   h0->data[4], h0->data[5], h0->data[6], h0->data[7]);
-      clib_warning("REWRITE_DEBUG: Template bytes 20-27: %02x%02x%02x%02x %02x%02x%02x%02x",
-                   h0->data[20], h0->data[21], h0->data[22], h0->data[23],
-                   h0->data[24], h0->data[25], h0->data[26], h0->data[27]);
-    }
+  u8 *template_data = h0->data;
+  clib_warning("REWRITE_DEBUG: Template bytes 0-7: %02x%02x%02x%02x %02x%02x%02x%02x",
+               template_data[0], template_data[1], template_data[2], template_data[3],
+               template_data[4], template_data[5], template_data[6], template_data[7]);
+  
+  if (h0->data_bytes >= 28) {
+    clib_warning("REWRITE_DEBUG: Template bytes 20-27: %02x%02x%02x%02x %02x%02x%02x%02x",
+                 template_data[20], template_data[21], template_data[22], template_data[23],
+                 template_data[24], template_data[25], template_data[26], template_data[27]);
+  }
 
   if (PREDICT_TRUE (most_likely_size == h0->data_bytes))
     {
@@ -204,12 +206,13 @@ _vnet_rewrite_one_header (const vnet_rewrite_header_t * h0,
 
         /* Debug after copy */
       if (most_likely_size >= 28) {
+        u8 *copied_data = (u8 *) packet0 - most_likely_size;
         clib_warning("REWRITE_DEBUG: After copy bytes 0-7: %02x%02x%02x%02x %02x%02x%02x%02x",
-                     dst[0], dst[1], dst[2], dst[3], 
-                     dst[4], dst[5], dst[6], dst[7]);
+                     copied_data[0], copied_data[1], copied_data[2], copied_data[3], 
+                     copied_data[4], copied_data[5], copied_data[6], copied_data[7]);
         clib_warning("REWRITE_DEBUG: After copy bytes 20-27: %02x%02x%02x%02x %02x%02x%02x%02x",
-                     dst[20], dst[21], dst[22], dst[23],
-                     dst[24], dst[25], dst[26], dst[27]);
+                     copied_data[20], copied_data[21], copied_data[22], copied_data[23],
+                     copied_data[24], copied_data[25], copied_data[26], copied_data[27]);
       }
     }
   else
@@ -221,11 +224,13 @@ _vnet_rewrite_one_header (const vnet_rewrite_header_t * h0,
       //clib_memcpy_fast ((u8 *) packet0 - h0->data_bytes,
       //h0->data, h0->data_bytes);
       clib_memcpy_fast (dst, h0->data, h0->data_bytes);
-        /* Debug after copy */
+      
+      /* Debug after copy */
       if (h0->data_bytes >= 28) {
+        u8 *copied_data = (u8 *) packet0 - h0->data_bytes;
         clib_warning("REWRITE_DEBUG: After copy (path 2) bytes 0-7: %02x%02x%02x%02x %02x%02x%02x%02x",
-                     dst[0], dst[1], dst[2], dst[3], 
-                     dst[4], dst[5], dst[6], dst[7]);
+                     copied_data[0], copied_data[1], copied_data[2], copied_data[3], 
+                     copied_data[4], copied_data[5], copied_data[6], copied_data[7]);
         }
       }
 }
