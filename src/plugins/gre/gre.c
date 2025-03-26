@@ -287,13 +287,13 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
         /* Place the key right after the GRE header */
         u32 *key_ptr = (u32 *)(gre + 1);
         *key_ptr = clib_host_to_net_u32(t->gre_key);
-        
         clib_warning("GRE key placed at offset %d with value 0x%x",
                     (u8*)key_ptr - rewrite,
                     clib_net_to_host_u32(*key_ptr));
       }
     }
     
+    ip->flags_and_fragment_offset = 0;
     /* Calculate IP checksum after all fields are set */
     ip->checksum = ip4_header_checksum(ip);
     
