@@ -219,8 +219,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
   u8 *rewrite = NULL;
   gre_tunnel_t *t;
   u32 ti;
-  u8 is_ipv6;
-
+  u8 is_ipv6
   dst = dst_address;
   ti = gm->tunnel_index_by_sw_if_index[sw_if_index];
 
@@ -343,12 +342,24 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 	{
 	  gre_header_with_key_t *grek = (gre_header_with_key_t *) gre;
 	  grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
+    // Ensure the key is word-aligned
+    ASSERT(((uintptr_t)&grek->key & 0x3) == 0);
+    //Set the GRe key
 	  grek->key = clib_host_to_net_u32 (t->gre_key);
+
+      // And add this debug to confirm alignment
+    clib_warning("GRE key address: %p, alignment: %d",
+    &grek->key,
+    (uintptr_t)&grek->key & 0x3);
 
     // Debug output to verify key placement
     clib_warning("GRE key placed at offset %d with value 0x%x", 
       (u8 *)&grek->key - rewrite, 
       clib_net_to_host_u32(grek->key));
+    
+    clib_warning("Flags_and_fragment_offset at offset %d, value: 0x%04x",
+      (u8*)&h4->ip4.flags_and_fragment_offset - rewrite,
+      clib_net_to_host_u16(h4->ip4.flags_and_fragment_offset));
 
       clib_warning("IPv4 GRE header (2nd print) - flags: 0x%x, protocol: 0x%x",
         clib_net_to_host_u16(h4->gre.flags_and_version),
