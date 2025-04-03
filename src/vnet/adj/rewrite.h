@@ -165,7 +165,7 @@ vnet_rewrite_set_data_internal (vnet_rewrite_header_t * rw,
 
   // Debug after copy
   clib_warning("TRACE: vnet_rewrite_set_data_internal AFTER");
-  if (rw->data && data_bytes >= 8) {
+  if (data_bytes >= 8) {
     clib_warning("TRACE: Dest data[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
                 rw->data[0], rw->data[1], rw->data[2], rw->data[3],
                 rw->data[4], rw->data[5], rw->data[6], rw->data[7]);
