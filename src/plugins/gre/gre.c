@@ -252,10 +252,15 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       /* Allocate space for maximum header size including key */
       //vec_validate (rewrite, sizeof (*h4) + sizeof (gre_key_t) - 1);
       if (gre_key_is_valid(t->gre_key)) {
+        // After allocation and before any structure initialization
+        __builtin_prefetch(rewrite);
+        memset(rewrite, 0, vec_len(rewrite));
         vec_validate (rewrite, sizeof(ip4_and_gre_header_with_key_t) - 1);
         // Zero out the entire rewrite buffer before filling it
         //clib_memset(rewrite, 0, vec_len(rewrite));
-        ip4_and_gre_header_with_key_t *h4k = (ip4_and_gre_header_with_key_t *) rewrite;
+        //ip4_and_gre_header_with_key_t *h4k = (ip4_and_gre_header_with_key_t *) rewrite;
+        ip4_and_gre_header_with_key_t *h4k =
+        (ip4_and_gre_header_with_key_t *)__builtin_assume_aligned(rewrite, 8);
 
         // Add alignment verification here
         clib_warning("Header struct sizes - ip4_and_gre_header_t: %d, ip4_and_gre_header_with_key_t: %d",
@@ -294,9 +299,17 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 
           //set up GRE Key for non-ERSPAN
           grek->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_KEY);
-          grek->key = clib_host_to_net_u32 (t->gre_key);
+          //grek->key = clib_host_to_net_u32 (t->gre_key);
+          // Write key with explicit memory function instead of direct assignment
+          u32 key_value = clib_host_to_net_u32(t->gre_key);
+          clib_memcpy_fast(&h4k->gre.key, &key_value, sizeof(key_value));
         }
         h4k->ip4.checksum = ip4_header_checksum (&h4k->ip4);
+        // Verify key was set correctly without corrupting other fields
+        clib_warning("After key set - IP flags: 0x%x, GRE key: 0x%x",
+          clib_net_to_host_u16(h4k->ip4.flags_and_fragment_offset),
+          clib_net_to_host_u32(h4k->gre.key));
+
       }
       else {
         vec_validate (rewrite, sizeof(*h4) - 1);
@@ -409,6 +422,13 @@ for (int i = 0; i < vec_len(rewrite); i += 4) {
   clib_warning("Bytes %2d-%2d: 0x%02x%02x%02x%02x", 
               i, i+3, 
               rewrite[i], rewrite[i+1], rewrite[i+2], rewrite[i+3]);
+}
+
+  // Final check and fix for IPv4 flags field
+  if (gre_key_is_valid(t->gre_key) && !is_ipv6) {
+    ip4_and_gre_header_with_key_t *h4k = (ip4_and_gre_header_with_key_t *)rewrite;
+    h4k->ip4.flags_and_fragment_offset = 0;
+    h4k->ip4.checksum = ip4_header_checksum(&h4k->ip4);
 }
 
   return (rewrite);
