@@ -553,6 +553,14 @@ adj_nbr_update_rewrite_internal (ip_adjacency_t *adj,
 
     if (NULL != rewrite)
     {
+    if (vec_len(rewrite) >= 8) {
+        // Check if this looks like a GRE rewrite with potential corruption
+        if (rewrite[0] == 0x45 && rewrite[6] == 0x08 && rewrite[7] == 0xae) {
+          clib_warning("Found likely GRE key corruption, fixing flags field");
+          rewrite[6] = 0;
+          rewrite[7] = 0;
+        }
+      }
 	/*
 	 * new rewrite provided.
 	 * fill in the adj's rewrite string, and build the VLIB graph arc.

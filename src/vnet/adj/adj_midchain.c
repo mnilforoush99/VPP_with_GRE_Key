@@ -181,7 +181,7 @@ adj_nbr_midchain_update_rewrite (adj_index_t adj_index,
 				 u8 *rewrite)
 {
     // Add debug here
-      clib_warning("adj_midchain_update_rewrite: adj %d, rewrite_len %d", 
+      clib_warning(" Entering adj_midchain_update_rewrite: adj %d, rewrite_len %d", 
         adj_index, vec_len(rewrite));
 
     // Debug the actual rewrite content
@@ -191,7 +191,7 @@ adj_nbr_midchain_update_rewrite (adj_index_t adj_index,
     clib_warning("Rewrite bytes 24-27: 0x%02x%02x%02x%02x",
           rewrite[24], rewrite[25], rewrite[26], rewrite[27]);
     }
-    
+
     ip_adjacency_t *adj;
 
     ASSERT(ADJ_INDEX_INVALID != adj_index);
@@ -206,6 +206,13 @@ adj_nbr_midchain_update_rewrite (adj_index_t adj_index,
         adj->lookup_next_index != IP_LOOKUP_NEXT_MCAST_MIDCHAIN)
     {
         adj_midchain_setup(adj_index, fixup, fixup_data, flags);
+    }
+
+      // Just before calling adj_nbr_update_rewrite_internal
+    if (rewrite && vec_len(rewrite) >= 8) {
+      clib_warning("Before calling adj_nbr_update_rewrite_internal - 8 bytes: 0x%02x%02x%02x%02x%02x%02x%02x%02x",
+                   rewrite[0], rewrite[1], rewrite[2], rewrite[3],
+                   rewrite[4], rewrite[5], rewrite[6], rewrite[7]);
     }
 
     /*
