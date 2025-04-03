@@ -196,12 +196,12 @@ _vnet_rewrite_one_header (const vnet_rewrite_header_t * h0,
   ASSERT (h0->data_bytes != 0xfefe);
 
     /* Add debug */
-    clib_warning("_vnet_rewrite_one_header: h0: %p, packet0: %p, data_bytes: %d, most_likely_size: %d",
+    clib_warning("TRACE: _vnet_rewrite_one_header: h0: %p, packet0: %p, data_bytes: %d, most_likely_size: %d",
       h0, packet0, h0->data_bytes, most_likely_size);
   
   /* Debug rewrite data before copy */
     if (h0->data_bytes >= 28) {
-      clib_warning("REWRITE_DEBUG: Template bytes 0-7: %02x%02x%02x%02x %02x%02x%02x%02x",
+      clib_warning("TRACE: REWRITE_DEBUG: Template bytes 0-7: %02x%02x%02x%02x %02x%02x%02x%02x",
                    h0->data[0], h0->data[1], h0->data[2], h0->data[3],
                    h0->data[4], h0->data[5], h0->data[6], h0->data[7]);
       clib_warning("REWRITE_DEBUG: Template bytes 20-27: %02x%02x%02x%02x %02x%02x%02x%02x",
