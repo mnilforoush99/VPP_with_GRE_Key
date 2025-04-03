@@ -150,9 +150,26 @@ vnet_rewrite_set_data_internal (vnet_rewrite_header_t * rw,
   ASSERT ((max_size > 0) && (max_size <= VNET_REWRITE_TOTAL_BYTES));
   ASSERT ((data_bytes >= 0) && (data_bytes <= max_size));
 
+  // Debug before copy
+  clib_warning("TRACE: vnet_rewrite_set_data_internal BEFORE - data_bytes: %d", data_bytes);
+  if (data && data_bytes >= 8) {
+    const u8 *src_data = (const u8*)data;
+    clib_warning("TRACE: Source data[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
+                src_data[0], src_data[1], src_data[2], src_data[3],
+                src_data[4], src_data[5], src_data[6], src_data[7]);
+  }
+
   rw->data_bytes = data_bytes;
   clib_memcpy_fast (rw->data, data, data_bytes);
   clib_memset (rw->data + data_bytes, 0xfe, max_size - data_bytes);
+
+  // Debug after copy
+  clib_warning("TRACE: vnet_rewrite_set_data_internal AFTER");
+  if (rw->data && data_bytes >= 8) {
+    clib_warning("TRACE: Dest data[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
+                rw->data[0], rw->data[1], rw->data[2], rw->data[3],
+                rw->data[4], rw->data[5], rw->data[6], rw->data[7]);
+  }
 }
 
 #define vnet_rewrite_set_data(rw,data,data_bytes)		\

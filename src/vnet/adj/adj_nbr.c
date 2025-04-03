@@ -425,6 +425,10 @@ adj_nbr_update_rewrite_internal (ip_adjacency_t *adj,
 				 u32 next_node,
 				 u8 *rewrite)
 {
+    //debug
+    clib_warning("TRACE: adj_nbr_update_rewrite_internal START - rewrite len: %d",
+        (rewrite ? vec_len(rewrite) : 0));
+
     ip_adjacency_t *walk_adj;
     adj_index_t walk_ai, ai;
     vlib_main_t * vm;
@@ -553,14 +557,20 @@ adj_nbr_update_rewrite_internal (ip_adjacency_t *adj,
 
     if (NULL != rewrite)
     {
-    if (vec_len(rewrite) >= 8) {
-        // Check if this looks like a GRE rewrite with potential corruption
+    //debug
+    if (rewrite && vec_len(rewrite) >= 8) {
+        clib_warning("TRACE: Before vnet_rewrite_set_data_internal - rewrite[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
+                    rewrite[0], rewrite[1], rewrite[2], rewrite[3],
+                    rewrite[4], rewrite[5], rewrite[6], rewrite[7]);
+    
+        // Check and fix for debugging purposes
         if (rewrite[0] == 0x45 && rewrite[6] == 0x08 && rewrite[7] == 0xae) {
-          clib_warning("Found likely GRE key corruption, fixing flags field");
+          clib_warning("TRACE: Found GRE key corruption in adj_nbr_update_rewrite_internal, fixing");
           rewrite[6] = 0;
           rewrite[7] = 0;
         }
       }
+
 	/*
 	 * new rewrite provided.
 	 * fill in the adj's rewrite string, and build the VLIB graph arc.
@@ -570,6 +580,15 @@ adj_nbr_update_rewrite_internal (ip_adjacency_t *adj,
 				       rewrite,
 				       vec_len(rewrite));
 	vec_free(rewrite);
+    //debug
+    clib_warning("TRACE: After vnet_rewrite_set_data_internal");
+    const u8 *adj_rewrite = adj->rewrite_header.data;
+    if (adj_rewrite) {
+      clib_warning("TRACE: Adjacency rewrite data[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
+                  adj_rewrite[0], adj_rewrite[1], adj_rewrite[2], adj_rewrite[3],
+                  adj_rewrite[4], adj_rewrite[5], adj_rewrite[6], adj_rewrite[7]);
+    }
+    
     }
     else
     {

@@ -697,8 +697,8 @@ gre_update_adj (vnet_main_t *vnm, u32 sw_if_index, adj_index_t ai)
   t = pool_elt_at_index (gm->tunnels, ti);
   af = ADJ_FLAG_NONE;
 
-    // Add debug before rewrite creation
-    clib_warning("GRE update_adj - creating rewrite for tunnel %d, sw_if_index %d", 
+// Add debug before rewrite creation
+    clib_warning("gre_update_adj in gre.c - creating rewrite for tunnel %d, sw_if_index %d", 
       ti, sw_if_index);
 
 // Get the rewrite template
@@ -727,8 +727,22 @@ clib_warning("Rewrite bytes %2d-%2d: 0x%02x%02x%02x%02x",
     uword_to_pointer (t->flags, void *), af,
     gre_build_rewrite (vnm, sw_if_index, adj_get_link_type (ai),
 		       &t->tunnel_dst.fp_addr));
+  
+  //debug right after the call to adj_nbr_midchain_update_rewrite
+  clib_warning("TRACE: gre_update_adj - after adj_nbr_midchain_update_rewrite");
 
   gre_tunnel_stack (ai);
+
+  // Add a debug to check if we can retrieve and inspect the rewrite
+  ip_adjacency_t *adj = adj_get(ai);
+  if (adj) {
+    const u8 *adj_rewrite = adj->rewrite_header.data;
+    if (adj_rewrite) {
+      clib_warning("TRACE: Adjacency rewrite after setup - data[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
+                  adj_rewrite[0], adj_rewrite[1], adj_rewrite[2], adj_rewrite[3],
+                  adj_rewrite[4], adj_rewrite[5], adj_rewrite[6], adj_rewrite[7]);
+    }
+  }
 }
 
 adj_walk_rc_t
