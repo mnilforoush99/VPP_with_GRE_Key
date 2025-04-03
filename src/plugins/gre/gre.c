@@ -219,7 +219,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
   u8 *rewrite = NULL;
   gre_tunnel_t *t;
   u32 ti;
-  u8 is_ipv6
+  u8 is_ipv6;
   dst = dst_address;
   ti = gm->tunnel_index_by_sw_if_index[sw_if_index];
 
