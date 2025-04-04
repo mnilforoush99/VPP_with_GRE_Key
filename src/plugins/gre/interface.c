@@ -283,19 +283,19 @@ gre_tunnel_stack (adj_index_t ai)
   else
     {
       adj_midchain_delegate_stack (ai, gt->outer_fib_index, &gt->tunnel_dst);
-      if (gre_key_is_valid (gt->gre_key))
-	{
-	  gre_header_with_key_t *h =
-	    (gre_header_with_key_t *) adj->rewrite_data;
-	  h->key = clib_host_to_net_u32 (gt->gre_key);
-	}
+  //    if (gre_key_is_valid (gt->gre_key))
+	//{
+	//  gre_header_with_key_t *h =
+	//    (gre_header_with_key_t *) adj->rewrite_data;
+	//  h->key = clib_host_to_net_u32 (gt->gre_key);
+	//}
     }
     //zero out the IPv4 flags_and_fragments_offset field
-    adj = adj_get(ai);
-    if (adj && adj->rewrite_header.data_bytes >= 8) {
-      // Set the flags field at bytes 6-7 to zero
-      *(u16*)(adj->rewrite_header.data + 6) = 0;
-    }
+    //adj = adj_get(ai);
+    //if (adj && adj->rewrite_header.data_bytes >= 8) {
+    //  // Set the flags field at bytes 6-7 to zero
+    //  *(u16*)(adj->rewrite_header.data + 6) = 0;
+    //}
     // Debug at end of function
     adj = adj_get(ai);
     if (adj) {
