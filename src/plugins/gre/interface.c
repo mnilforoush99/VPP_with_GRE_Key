@@ -249,6 +249,17 @@ gre_tunnel_db_remove (gre_tunnel_t *t, gre_tunnel_key_t *key)
 void
 gre_tunnel_stack (adj_index_t ai)
 {
+  // debug at top of function
+  clib_warning("TRACE: gre_tunnel_stack START - adj_index: %d", ai);
+  ip_adjacency_t *adj = adj_get(ai);
+  if (adj) {
+    const u8 *adj_rewrite = adj->rewrite_header.data;
+    if (adj_rewrite) {
+      clib_warning("TRACE: Adjacency rewrite BEFORE stack - data[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
+                  adj_rewrite[0], adj_rewrite[1], adj_rewrite[2], adj_rewrite[3],
+                  adj_rewrite[4], adj_rewrite[5], adj_rewrite[6], adj_rewrite[7]);
+    }
+  }
   gre_main_t *gm = &gre_main;
   ip_adjacency_t *adj;
   gre_tunnel_t *gt;
@@ -278,6 +289,16 @@ gre_tunnel_stack (adj_index_t ai)
 	    (gre_header_with_key_t *) adj->rewrite_data;
 	  h->key = clib_host_to_net_u32 (gt->gre_key);
 	}
+    }
+    // Debug at end of function
+    adj = adj_get(ai);
+    if (adj) {
+      const u8 *adj_rewrite = adj->rewrite_header.data;
+      if (adj_rewrite) {
+        clib_warning("TRACE: Adjacency rewrite AFTER stack - data[0-7]: %02x%02x%02x%02x%02x%02x%02x%02x",
+                    adj_rewrite[0], adj_rewrite[1], adj_rewrite[2], adj_rewrite[3],
+                    adj_rewrite[4], adj_rewrite[5], adj_rewrite[6], adj_rewrite[7]);
+      }
     }
 }
 
