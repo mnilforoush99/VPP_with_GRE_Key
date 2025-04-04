@@ -261,7 +261,7 @@ gre_tunnel_stack (adj_index_t ai)
     }
   }
   gre_main_t *gm = &gre_main;
-  ip_adjacency_t *adj;
+  //ip_adjacency_t *adj;
   gre_tunnel_t *gt;
   u32 sw_if_index;
 
